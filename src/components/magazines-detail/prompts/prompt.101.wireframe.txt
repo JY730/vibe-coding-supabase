@@ -9,24 +9,20 @@
 
 ==============================================
 
-조건-파일경로) 구현될 TSX 파일경로: src/components/diaries-detail/index.tsx
-조건-파일경로) 구현될 CSS 파일경로: src/components/diaries-detail/styles.module.css
+조건-파일경로) 구현될 TSX 파일경로: src/components/magazines-detail/index.tsx
+조건-파일경로) 구현될 CSS 파일경로: src/components/magazines-detail/styles.module.css
 
 ==============================================
 
 핵심요구사항) 완성된 컴포넌트를 페이지에서 import하여 연결시킬 것.
-            - 연결될 경로: src/app/diaries/[id]/page.tsx
+            - 연결될 경로: src/app/magazines/[id]/page.tsx
 
 핵심요구사항) HTML과 flexbox를 활용한 와이어프레임 구조만 만들어낼 것.
 
 핵심요구사항) 각 영역은 아래의 수치값을 그대로 반영할 것. (단위: px)
-            - {gap}: 1400 * 32
+            - {gap1}: 1400 * 32
             - button-container: 1400 * 40
-            - {gap}: 1400 * 32
-            - detail-content: 1168 * 169
-            - {gap}: 1168 * 24
-            - detail-footer: 1168 * 56
-            - {gap}: 1168 * 24
-            - retrospect-input: 1168 * 85
-            - {gap}: 1168 * 16
-            - retrospect-list: 1168 * 72
+            - {gap1}: 1400 * 32
+            - detail-content: 1400 * auto
+            - {gap2}: 1400 * 48
+            - footer: 1400 * 52
