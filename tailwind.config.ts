@@ -9,6 +9,8 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        border: 'rgba(0, 0, 0, 0.1)',
+        ring: 'oklch(0.708 0 0)',
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
