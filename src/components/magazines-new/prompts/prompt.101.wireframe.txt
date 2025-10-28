@@ -9,40 +9,25 @@
 
 ==============================================
 
-조건-파일경로) 구현될 TSX 파일경로: src/components/boards-new/index.tsx
-조건-파일경로) 구현될 CSS 파일경로: src/components/boards-new/styles.module.css
+조건-파일경로) 구현될 TSX 파일경로: src/components/magazines-new/index.tsx
+조건-파일경로) 구현될 CSS 파일경로: src/components/magazines-new/styles.module.css
 
 ==============================================
 
 핵심요구사항) 완성된 컴포넌트를 페이지에서 import하여 연결시킬 것.
-            - 연결될 경로: src/app/new/page.tsx
+            - 연결될 경로: src/app/magazines/new/page.tsx
 
 핵심요구사항) HTML과 flexbox를 활용한 와이어프레임 구조만 만들어낼 것.
 
 핵심요구사항) 각 영역은 아래의 수치값을 그대로 반영할 것. (단위: px) 각 영역이 구분될 수 있게 background-color를 줄 것.
-            - detail-title: 1168 * 28
-            - {gap}: 1168 * 40
-            - input-user: 1168 * 80
-            - {gap}: 1168 * 40
-            - divider: 1168 * 1
-            - {gap}: 1168 * 40  
-            - input-title: 1168 * 80    
-            - {gap}: 1168 * 40
-            - divider: 1168 * 1
-            - {gap}: 1168 * 40
-            - input-content: 1168 * 368   
-            - {gap}: 1168 * 40
-            - input-address: 1168 * 192  
-            - {gap}: 1168 * 40
-            - divider: 1168 * 1
-            - {gap}: 1168 * 40 
-            - input-youtube-url: 1168 * 80  
-            - {gap}: 1168 * 40
-            - divider: 1168 * 1
-            - {gap}: 1168 * 40
-            - add-image-button: 1168 * 192
-            - {gap}: 1168 * 40
-            - button : 1168 * 48
+            - {gap1}: 1400 * 32
+            - list-button: 1400 * 40
+            - {gap1}: 1400 * 32
+            - title: 1400 * 56
+            - {gap2}: 1400 * 40
+            - content: 1400 * auto
+            - {gap2}: 1400 * 40
+       
                  
 
 
