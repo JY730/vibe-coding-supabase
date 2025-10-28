@@ -1,30 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import GlossaryMagazines from "@/components/GlossaryMagazines";
-import GlossaryMagazinesDetail from "@/components/GlossaryMagazinesDetail";
 
-export default function App() {
-  const [selectedArticleId, setSelectedArticleId] = useState<number | null>(null);
+import Magazines from "@/components/magazines";
 
-  const handleArticleClick = (id: number) => {
-    setSelectedArticleId(id);
-  };
-
-  const handleBackToList = () => {
-    setSelectedArticleId(null);
-  };
+export default function Home() { 
 
   return (
-    <div className="min-h-screen bg-background">
-      {selectedArticleId === null ? (
-        <GlossaryMagazines onArticleClick={handleArticleClick} />
-      ) : (
-        <GlossaryMagazinesDetail 
-          articleId={selectedArticleId} 
-          onBack={handleBackToList} 
-        />
-      )}
-    </div>
+    <Magazines />
   );
 }

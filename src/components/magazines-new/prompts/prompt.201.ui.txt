@@ -1,0 +1,77 @@
+아래의 조건을 모두 적용하여, 아래의 요구사항을 모두 구현할 것.
+구현 결과를 체크리스트로 반환할 것.
+
+==============================================
+
+조건-커서룰) 아래의 커서룰을 적용하여 작업하고, 이 작업이 끝나면 해당 rules 적용 결과를 체크리스트로 반환할 것.
+            - @01-common.mdc
+            - @02-wireframe.mdc
+            - @03-ui.mdc
+
+==============================================
+
+조건-피그마) 활용할MCP: CursorTalkToFigmaMCP(채널명: 2n96nvac)
+조건-피그마) 구현될 컴포넌트 노드ID(submit-title 영역): 285-32385
+조건-피그마) 구현될 컴포넌트 노드ID(input-user 영역): 285:32390
+조건-피그마) 구현될 컴포넌트 노드ID(input-title 영역): 285:32394
+조건-피그마) 구현될 컴포넌트 노드ID(input-content 영역): 285:32396
+조건-피그마) 구현될 컴포넌트 노드ID(input-address 영역): 285:32401
+조건-피그마) 구현될 컴포넌트 노드ID(input-youtube-url 영역): 285:32406
+조건-피그마) 구현될 컴포넌트 노드ID(add-image-button 영역): 285:32408
+조건-피그마) 구현될 컴포넌트 노드ID(button 영역): 285:32416
+
+
+조건-파일경로) 구현될 TSX 파일경로: src/components/boards-new/index.tsx
+조건-파일경로) 구현될 CSS 파일경로: src/components/boards-new/styles.module.css
+
+==============================================
+
+조건-공통목록) 사용할 공통컴포넌트 목록
+            - <Input />, <Textarea />, <Button />
+
+조건-공통목록) 사용할 색상 목록(global.css에 명시된 변수 토큰 활용)
+            - 비슷한 토큰 선택하여 사용(하드코딩 금지)
+
+조건-공통목록) 사용할 타이포그래피 목록(global.css에 명시된 변수 토큰 활용)
+            - 비슷한 토큰 선택하여 사용(하드코딩 금지)
+
+==============================================
+
+핵심요구사항) MCP를 연동하여 피그마의 디자인을 이미 만들어져있는 와이어프레임의 
+            submit-title, input-user, input-title, input-content, input-address, input-youtube-url, add-image-button, button 영역에 그대로 구현할 것.
+
+핵심요구사항) 사진 첨부 영역에서 추가 아이콘은 public/images/add.svg를 사용할 것.
+
+핵심요구사항) divider(border)는 1px solid gray-100으로 설정할 것.
+
+핵심요구사항) 공통컴포넌트는 다음의 규칙을 지켜 step-by-step 으로 구현하고, 적용 결과를 체크리스트로 반환할 것.
+            1. 공통컴포넌트 원본을 수정하지 말고, 아래의 props만 활용할 것.
+                - variant: primary, secondary를 확인하여 구현할 것.
+                - theme: light 모드만 사용할 것.
+                - size: 피그마와 일치할 것.
+                - className 전달: width만 허용할 것.
+
+            2. 적용될 공통컴포넌트 목록을 구현할 것.
+                - 작성자 입력창: <Input /> , required: true
+                - 비밀번호 입력창: <Input />, required: true,
+                - 제목 입력창: <Input />, required: true,
+                - 내용 입력창: <Textarea />, required: true,
+                - 주소 입력창: <Input />, <Button />
+                - 유튜브 링크 입력창: <Input />
+                - 취소, 등록하기 버튼: <Button />
+
+
+
+                    
+
+기존히스토리-참고만) 공통컴포넌트는 다음의 규칙을 지켜 step-by-step 으로 구현하고, 적용 결과를 체크리스트로 반환할 것.
+                1. 공통컴포넌트 원본을 수정하지 말고, 아래의 props만 활용할 것.
+                    - variant: primary, secondary를 확인하여 구현할 것.
+                    - theme: light 모드만 사용할 것.
+                    - size: 피그마와 일치할 것.
+                    - className 전달: width만 허용할 것.
+
+                2. 적용될 공통컴포넌트 목록을 구현할 것.
+                    1) detail-footer는 <Button />를 활용해 구현할 것.
+                        - 목록버튼 아이콘: public/icons/menu.svg
+                        - 수정버튼 아이콘: public/icons/edit.svg

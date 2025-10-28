@@ -8,6 +8,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-pretendard)', 'Pretendard', 'system-ui', 'sans-serif'],
+      },
       colors: {
         border: 'rgba(0, 0, 0, 0.1)',
         ring: 'oklch(0.708 0 0)',

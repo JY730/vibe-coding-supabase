@@ -1,0 +1,281 @@
+/* Container */
+.container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header 영역 - 1400 * 80 */
+.header {
+  width: 100%;
+  height: 80px;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+}
+
+.headerContent {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 2rem;
+}
+
+.headerNav {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* 버튼 스타일 */
+.loginButton,
+.writeButton,
+.subscribeButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  width: 120px;
+  height: 48px;
+}
+
+.buttonText {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.loginButton {
+  width: 120px;
+  background-color: transparent;
+  color: #6b7280;
+  border: 1px solid transparent;
+}
+
+.loginButton:hover {
+  background-color: #f9fafb;
+}
+
+.writeButton {
+  width: 120px;
+  background-color: #374151;
+  color: #ffffff;
+  border: 1px solid #374151;
+}
+
+.writeButton:hover {
+  background-color: #1f2937;
+}
+
+.subscribeButton {
+  width: 128px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  color: #ffffff;
+  border: 1px solid #8b5cf6;
+}
+
+.subscribeButton:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+}
+
+/* Gap - 1400 * 8 */
+.gap {
+  width: 100%;
+  height: 8px;
+}
+
+/* Gap2 - 1400 * 40 */
+.gap2 {
+  width: 100%;
+  height: 40px;
+}
+
+/* Title 영역 - 1400 * 56 */
+.titleSection {
+  width: 100%;
+  height: auto;
+  display: flex;
+  gap: 8px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #171717;
+  margin: 0;
+  line-height: 24px;
+}
+
+.subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: #666666;
+  margin: 0;
+  line-height: 24px;
+}
+
+/* Main 영역 - 1400 * auto */
+.main {
+  width: 100%;
+  min-height: 420px;
+  padding: 0 24px;
+}
+
+/* 아티클 그리드 */
+.articlesGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  padding: 24px 0;
+}
+
+/* 매거진 카드 */
+.magazineCard {
+  background-color: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.magazineCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 카드 이미지 컨테이너 */
+.cardImageContainer {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.cardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 카테고리 오버레이 */
+.categoryOverlay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: auto;
+  height: 30px;
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+/* 카드 콘텐츠 */
+.cardContent {
+  padding: 20px;
+}
+
+.cardTitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: #171717;
+  line-height: 24px;
+  margin: 0 0 16px 0;
+}
+
+.cardDescription {
+  font-size: 14.4px;
+  font-weight: 400;
+  color: #666666;
+  line-height: 24px;
+  margin: 0 0 20px 0;
+}
+
+/* 태그 컨테이너 */
+.tagsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  background-color: #f3f4f6;
+  color: #666666;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1200px) {
+  .articlesGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .articlesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .headerNav {
+    gap: 4px;
+  }
+  
+  .loginButton,
+  .writeButton,
+  .subscribeButton {
+    width: 100px;
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 600px) {
+  .articlesGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .headerContent {
+    padding: 0 1rem;
+  }
+  
+  .main {
+    padding: 0 12px;
+  }
+  
+  .headerNav {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .loginButton,
+  .writeButton,
+  .subscribeButton {
+    width: 80px;
+    padding: 6px 8px;
+    font-size: 12px;
+    height: 36px;
+  }
+}
