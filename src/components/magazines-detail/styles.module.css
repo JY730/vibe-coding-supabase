@@ -47,7 +47,6 @@
 }
 
 .buttonText {
-  font-family: Arial, sans-serif;
   font-size: 14px;
   font-weight: 400;
   color: #374151;
@@ -97,7 +96,6 @@
 }
 
 .categoryText {
-  font-family: Arial, sans-serif;
   font-size: 14px;
   font-weight: 700;
   color: #ffffff;
@@ -117,8 +115,7 @@
   gap: 16px;
 }
 
-.articleDate {
-  font-family: Arial, sans-serif;
+.articleDate {  
   font-size: 14px;
   font-weight: 400;
   color: #666666;
@@ -126,7 +123,6 @@
 }
 
 .articleTitle {
-  font-family: Arial, sans-serif;
   font-size: 16px;
   font-weight: 400;
   color: #171717;
@@ -135,7 +131,6 @@
 }
 
 .articleSubtitle {
-  font-family: Arial, sans-serif;
   font-size: 18px;
   font-weight: 400;
   color: #666666;
@@ -151,8 +146,7 @@
   padding-top: 40px
 }
 
-.articleParagraph {
-  font-family: Arial, sans-serif;
+.articleParagraph {  
   font-size: 16px;
   font-weight: 400;
   color: #374151;
@@ -173,7 +167,6 @@
   padding: 6px 12px;
   background-color: #f3f4f6;
   border-radius: 6px;
-  font-family: Arial, sans-serif;
   font-size: 14px;
   font-weight: 400;
   color: #666666;
@@ -193,7 +186,6 @@
   background-color: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  font-family: Arial, sans-serif;
   font-size: 15px;
   font-weight: 400;
   color: #374151;

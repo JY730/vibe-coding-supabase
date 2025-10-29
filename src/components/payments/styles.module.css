@@ -1,0 +1,209 @@
+/* Container */
+.container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+}
+
+/* Gap1 - 1400 * 32 */
+.gap1 {
+  width: 100%;
+  height: 32px;
+}
+
+/* List Button - 1400 * 40 */
+.listButton {
+  width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 20px;
+}
+
+.listButtonInner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 400;
+  color: #374151;
+  transition: all 0.2s ease;
+}
+
+.listButtonInner:hover {
+  background-color: #f9fafb;
+}
+
+.leftArrow {
+  width: 18px;
+  height: 18px;
+}
+
+/* Title - 1400 * 56 */
+.title {
+  width: 100%;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+.titleGroup {
+  text-align: center;
+}
+
+.titleGroup h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #171717;
+  margin: 0 0 8px 0;
+  line-height: 24px;
+}
+
+.titleGroup p {
+  font-size: 16px;
+  font-weight: 400;
+  color: #666666;
+  margin: 0;
+  line-height: 24px;
+}
+
+/* Gap2 - 1400 * 40 */
+.gap2 {
+  width: 100%;
+  height: 40px;
+}
+
+/* Content - 1400 * auto */
+.content {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+.subscriptionCard {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 560px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  padding: 32px 40px 64px 40px 
+}
+
+/* Subscription Header */
+.subscriptionHeader {  
+  width: 400px;
+  border-bottom: 1px solid #f3f4f6;
+  padding: 32px;
+  text-align: center;
+}
+
+.subscriptionHeader h2 {
+  font-size: 16px;
+  font-weight: 400;
+  color: #111827;
+  margin: 0 0 8px 0;
+  line-height: 24px;
+}
+
+.subscriptionHeader p {
+  font-size: 16px;
+  font-weight: 400;
+  color: #6b7280;
+  margin: 0;
+  line-height: 22.5px;
+}
+
+/* Price Section */
+.priceSection {
+  width: 400px;
+  border-bottom: 1px solid #f3f4f6;
+  padding: 40px;
+}
+
+.priceContainer {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+}
+
+.price {
+  font-size: 48px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 72px;
+  letter-spacing: -0.96px;
+}
+
+.priceUnit {
+  font-size: 18px;
+  font-weight: 400;
+  color: #6b7280;
+  line-height: 27px;
+}
+
+/* Features List */
+.featuresList {
+  width: 400px;
+  padding: 72px 0px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 40px;
+}
+
+.featureItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.checkIcon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.featureItem span {
+  font-size: 16px;
+  font-weight: 400;
+  color: #374151;
+  line-height: 22.5px;
+}
+
+/* Subscribe Button */
+.subscribeButton {
+  width: 400px;
+  height: 58px;
+  background-color: #374151;
+  border: 1px solid #374151;
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.subscribeButton:hover {
+  background-color: #1f2937;
+}
