@@ -1,12 +1,16 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import styles from './styles.module.css';
+import { useSubmitMagazine, MagazineFormData } from './hooks/index.submit.hook';
 
 export default function MagazinesNew() {
-  const [formData, setFormData] = useState({
-    image: null as File | null,
+  const router = useRouter();
+  const { isSubmitting, error, submitMagazine } = useSubmitMagazine();
+  const [formData, setFormData] = useState<MagazineFormData>({
+    image: null,
     category: '',
     title: '',
     description: '',
@@ -94,10 +98,35 @@ export default function MagazinesNew() {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // TODO: 실제 제출 로직 구현
+    
+    // 필수 필드 검증
+    if (!formData.category) {
+      alert('카테고리를 선택해주세요.');
+      return;
+    }
+    
+    if (!formData.title.trim()) {
+      alert('제목을 입력해주세요.');
+      return;
+    }
+    
+    if (!formData.description.trim()) {
+      alert('한줄 소개를 입력해주세요.');
+      return;
+    }
+    
+    if (!formData.content.trim()) {
+      alert('상세 내용을 입력해주세요.');
+      return;
+    }
+
+    await submitMagazine(formData);
+  };
+
+  const handleListButtonClick = () => {
+    router.push('/magazines');
   };
 
   return (
@@ -107,7 +136,7 @@ export default function MagazinesNew() {
       
       {/* list-button: 1400 * 40 */}
       <div className={styles.listButton}>
-        <button className={styles.backButton}>
+        <button className={styles.backButton} onClick={handleListButtonClick}>
           <Image 
             src="/icons/left-arrow.svg" 
             alt="뒤로가기" 
@@ -134,6 +163,11 @@ export default function MagazinesNew() {
       
       {/* content: 1400 * auto */}
       <div className={styles.content}>
+        {error && (
+          <div className={styles.errorMessage}>
+            {error}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className={styles.form}>
           {/* 이미지 파일 업로드 */}
           <div className={styles.formGroup}>
@@ -262,8 +296,12 @@ export default function MagazinesNew() {
           </div>
 
           {/* 제출 버튼 */}
-          <button type="submit" className={styles.submitButton}>
-            아티클 등록하기
+          <button 
+            type="submit" 
+            className={styles.submitButton}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? '등록 중...' : '아티클 등록하기'}
           </button>
         </form>
       </div>

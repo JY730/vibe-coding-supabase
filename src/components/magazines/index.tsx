@@ -1,8 +1,12 @@
+'use client';
+
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import styles from './styles.module.css';
 import Image from 'next/image';
 
 export default function Magazines() {
+  const router = useRouter();
   // 아티클 데이터
   const articles = [
     {
@@ -86,19 +90,19 @@ export default function Magazines() {
         <div className={styles.headerContent}>
           <div className={styles.headerNav}>
             {/* 로그인 버튼 */}
-            <button className={styles.loginButton}>
+            <button className={styles.loginButton} onClick={() => router.push('/auth/login')}>
               <Image src="/icons/login.svg" alt="로그인" width={18} height={18} />
               <span className={styles.buttonText}>로그인</span>
             </button>
             
             {/* 글쓰기 버튼 */}
-            <button className={styles.writeButton}>
+            <button className={styles.writeButton} onClick={() => router.push('/magazines/new')}>
               <Image src="/icons/write.svg" alt="글쓰기" width={18} height={18} />
               <span className={styles.buttonText}>글쓰기</span>
             </button>
             
             {/* 구독하기 버튼 */}
-            <button className={styles.subscribeButton}>
+            <button className={styles.subscribeButton} onClick={() => router.push('/payments')}>
               <Image src="/icons/subscribe.svg" alt="구독하기" width={18} height={18} />
               <span className={styles.buttonText}>구독하기</span>
             </button>

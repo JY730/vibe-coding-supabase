@@ -1,8 +1,12 @@
+'use client';
+
 import React from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import styles from './styles.module.css';
 
 export default function MagazinesDetail() {
+  const router = useRouter();
   return (
     <div className={styles.container}>
       {/* Gap 1 */}
@@ -10,7 +14,7 @@ export default function MagazinesDetail() {
 
       {/* Button Container */}
       <div className={styles.buttonContainer}>
-        <button className={styles.listButton}>
+        <button className={styles.listButton} onClick={() => router.push('/magazines')}>
           <Image 
             src="/icons/left-arrow.svg" 
             alt="왼쪽 화살표" 
@@ -96,7 +100,7 @@ export default function MagazinesDetail() {
 
       {/* Footer */}
       <div className={styles.footer}>
-        <button className={styles.footerButton}>목록으로 돌아가기</button>
+        <button className={styles.footerButton} onClick={() => router.push('/magazines')}>목록으로 돌아가기</button>
       </div>
 
        {/* Gap 2 */}

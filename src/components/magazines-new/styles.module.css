@@ -344,3 +344,25 @@
   background-color: #111827;
   border-color: #111827;
 }
+
+.submitButton:disabled {
+  background-color: #9ca3af;
+  border-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.submitButton:disabled:hover {
+  background-color: #9ca3af;
+  border-color: #9ca3af;
+}
+
+.errorMessage {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+  color: #dc2626;
+  font-size: 14px;
+  line-height: 20px;
+}
