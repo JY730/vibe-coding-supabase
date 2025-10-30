@@ -15,10 +15,12 @@ export default function Magazines() {
     const labelMap: { [key: string]: string } = {
       'ai': '인공지능',
       'web': '웹개발',
+      'webdev': '웹개발',
       'cloud': '클라우드',
       'security': '보안',
       'mobile': '모바일',
       'data': '데이터사이언스',
+      'datascience': '데이터사이언스',
       'blockchain': '블록체인',
       'devops': 'DevOps',
       'other': '기타'
@@ -30,11 +32,11 @@ export default function Magazines() {
   const getCategoryColor = (category: string): string => {
     const colorMap: { [key: string]: string } = {
       'ai': '#8b5cf6',
-      'web': '#22c55e',
+      'webdev': '#22c55e',
       'cloud': '#3b82f6',
       'security': '#ef4444',
       'mobile': '#ec4899',
-      'data': '#f59e0b',
+      'datascience': '#f59e0b',
       'blockchain': '#14b8a6',
       'devops': '#6366f1',
       'other': '#6b7280'

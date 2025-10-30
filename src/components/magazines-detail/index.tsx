@@ -18,7 +18,6 @@ export default function MagazinesDetail({ id }: MagazinesDetailProps) {
   const getCategoryLabel = (category: string): string => {
     const labelMap: { [key: string]: string } = {
       'ai': '인공지능',
-      'web': '웹개발',
       'webdev': '웹개발',
       'cloud': '클라우드',
       'security': '보안',
@@ -30,6 +29,23 @@ export default function MagazinesDetail({ id }: MagazinesDetailProps) {
       'other': '기타'
     };
     return labelMap[category] || category; // 매핑되지 않은 경우 원본 값 반환
+  };
+
+  // 카테고리별 색상 매핑
+  const getCategoryColor = (category: string): string => {
+    const colorMap: { [key: string]: string } = {
+      'ai': '#8b5cf6',
+      'webdev': '#22c55e',
+      'cloud': '#3b82f6',
+      'security': '#ef4444',
+      'mobile': '#ec4899',
+      'data': '#f59e0b',
+      'datascience': '#f59e0b',
+      'blockchain': '#14b8a6',
+      'devops': '#6366f1',
+      'other': '#6b7280'
+    };
+    return colorMap[category] || colorMap['other'];
   };
 
   if (loading) {
@@ -96,7 +112,10 @@ export default function MagazinesDetail({ id }: MagazinesDetailProps) {
             className={styles.contentImage}
           />
           <div className={styles.imageGradient}></div>
-          <div className={styles.categoryTag}>
+          <div 
+            className={styles.categoryTag}
+            style={{ backgroundColor: getCategoryColor(data.category) }}
+          >
             <span className={styles.categoryText}>{getCategoryLabel(data.category)}</span>
           </div>
         </div>
