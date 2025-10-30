@@ -1,8 +1,15 @@
 import React from 'react';
 import styles from './styles.module.css';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export default function Payments() {
+  const router = useRouter();
+
+  const handleListClick = () => {
+    router.push('/magazines');
+  };
+
   return (
     <div className={styles.container}>
       {/* Gap1 - 1400 * 32 */}
@@ -10,7 +17,7 @@ export default function Payments() {
 
       {/* List Button - 1400 * 40 */}
       <div className={styles.listButton}>
-        <button className={styles.listButtonInner}>
+        <button className={styles.listButtonInner} onClick={handleListClick}>
           <Image 
             src="/icons/left-arrow.svg" 
             alt="left arrow" 
