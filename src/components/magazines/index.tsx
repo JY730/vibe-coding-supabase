@@ -123,11 +123,12 @@ export default function Magazines() {
               {/* 이미지 영역 */}
               <div className={styles.cardImageContainer}>
                 <Image
-                  src="/images/detail-image.png"
+                  src={magazine.image_url && magazine.image_url.trim() !== '' ? magazine.image_url : '/images/detail-image.png'}
                   alt={magazine.title}
                   width={323}
                   height={200}
                   className={styles.cardImage}
+                  unoptimized
                 />
                 <div 
                   className={styles.categoryOverlay}

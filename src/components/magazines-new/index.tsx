@@ -17,10 +17,12 @@ export default function MagazinesNew() {
     content: '',
     tags: ''
   });
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 
   const [isDragOver, setIsDragOver] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const categoryOptions = [
     { value: 'ai', label: '인공지능' },
@@ -61,6 +63,22 @@ export default function MagazinesNew() {
         ...prev,
         image: file
       }));
+      // 미리보기 URL 생성
+      const nextUrl = URL.createObjectURL(file);
+      // 이전 URL 정리
+      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+      setImagePreviewUrl(nextUrl);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
+    }
+    setImagePreviewUrl(null);
+    setFormData(prev => ({ ...prev, image: null }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -83,6 +101,9 @@ export default function MagazinesNew() {
         ...prev,
         image: file
       }));
+      const nextUrl = URL.createObjectURL(file);
+      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+      setImagePreviewUrl(nextUrl);
     }
   };
 
@@ -178,24 +199,46 @@ export default function MagazinesNew() {
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
             >
-              <div className={styles.imageUploadContent}>
-                <Image 
-                  src="/icons/image.svg" 
-                  alt="이미지 아이콘" 
-                  width={48} 
-                  height={48}
-                />
-                <div className={styles.imageUploadText}>
-                  <p className={styles.imageUploadMainText}>클릭하여 이미지 선택</p>
-                  <p className={styles.imageUploadSubText}>또는 드래그 앤 드롭</p>
-                  <p className={styles.imageUploadHint}>JPG, PNG, GIF (최대 10MB)</p>
+              {imagePreviewUrl ? (
+                <div style={{ width: '100%', position: 'relative' }}>
+                  <img
+                    src={imagePreviewUrl}
+                    alt="선택한 이미지 미리보기"
+                    style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 12 }}
+                  />
+                  <button
+                    type="button"
+                    className={styles.removeImageButton}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemoveImage(); }}
+                    aria-label="이미지 삭제"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24" aria-hidden>
+                      <path d="M11.9997 10.5865L16.9495 5.63672L18.3637 7.05093L13.4139 12.0007L18.3637 16.9504L16.9495 18.3646L11.9997 13.4149L7.04996 18.3646L5.63574 16.9504L10.5855 12.0007L5.63574 7.05093L7.04996 5.63672L11.9997 10.5865Z"></path>
+                    </svg>
+                  </button>
                 </div>
-              </div>
+              ) : (
+                <div className={styles.imageUploadContent}>
+                  <Image 
+                    src="/icons/image.svg" 
+                    alt="이미지 아이콘" 
+                    width={48} 
+                    height={48}
+                  />
+                  <div className={styles.imageUploadText}>
+                    <p className={styles.imageUploadMainText}>클릭하여 이미지 선택</p>
+                    <p className={styles.imageUploadSubText}>또는 드래그 앤 드롭</p>
+                    <p className={styles.imageUploadHint}>JPG, PNG, GIF (최대 10MB)</p>
+                  </div>
+                </div>
+              )}
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
                 className={styles.hiddenFileInput}
+                style={{ pointerEvents: imagePreviewUrl ? 'none' : 'auto' }}
+                ref={fileInputRef}
               />
             </div>
           </div>

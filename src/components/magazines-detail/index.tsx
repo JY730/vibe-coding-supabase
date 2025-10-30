@@ -105,7 +105,7 @@ export default function MagazinesDetail({ id }: MagazinesDetailProps) {
         {/* Image Container */}
         <div className={styles.imageContainer}>
           <Image 
-            src="/images/detail-image.png" 
+            src={data.image_url || '/images/detail-image.png'} 
             alt={data.title} 
             width={852} 
             height={400}

@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 
 export interface MagazineData {
   id: string;
+  image_url: string;
   category: string;
   title: string;
   description: string;
@@ -31,7 +32,7 @@ export function useMagazineDetail(id: string): UseMagazineDetailReturn {
 
         const { data: magazineData, error: fetchError } = await supabase
           .from('magazine')
-          .select('id, category, title, description, content, tags')
+          .select('id, image_url, category, title, description, content, tags')
           .eq('id', id)
           .single();
 

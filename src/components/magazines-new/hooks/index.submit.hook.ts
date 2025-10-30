@@ -32,12 +32,41 @@ export const useSubmitMagazine = (): UseSubmitMagazineReturn => {
         ? formData.tags.split(' ').filter(tag => tag.trim() !== '').map(tag => tag.replace('#', ''))
         : null;
 
+      // 이미지 업로드 처리 (선택)
+      let uploadedImagePath: string | null = null;
+      if (formData.image) {
+        const now = new Date();
+        const yyyy = String(now.getFullYear());
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const uuid = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+          ? crypto.randomUUID()
+          : `${now.getTime()}-${Math.random().toString(36).slice(2, 10)}`;
+
+        // 요구사항: 파일명은 yyyy/mm/dd/{UUID}.jpg
+        const filePath = `${yyyy}/${mm}/${dd}/${uuid}.jpg`;
+
+        const { error: uploadError } = await supabase
+          .storage
+          .from('vibe-coding-storage')
+          .upload(filePath, formData.image, {
+            upsert: false,
+            contentType: formData.image.type || 'image/jpeg'
+          });
+
+        if (uploadError) {
+          throw new Error(`이미지 업로드 실패: ${uploadError.message}`);
+        }
+
+        uploadedImagePath = filePath;
+      }
+
       // Supabase에 매거진 데이터 삽입
       const { data, error: insertError } = await supabase
         .from('magazine')
         .insert([
           {
-            image_url: null, // 요구사항에 따라 무시
+            image_url: uploadedImagePath,
             category: formData.category,
             title: formData.title,
             description: formData.description,
