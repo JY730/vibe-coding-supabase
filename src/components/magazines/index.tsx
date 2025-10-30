@@ -5,10 +5,19 @@ import { useRouter } from 'next/navigation';
 import styles from './styles.module.css';
 import Image from 'next/image';
 import { useMagazines } from './hooks/index.binding.hook';
+import { supabase } from '@/lib/supabase';
 
 export default function Magazines() {
   const router = useRouter();
   const { magazines, loading, error } = useMagazines();
+
+  const resolveImageSrc = (raw: string | null | undefined): string => {
+    const value = (raw || '').trim();
+    if (value === '') return '/images/detail-image.png';
+    if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('/')) return value;
+    const { data } = supabase.storage.from('vibe-coding-storage').getPublicUrl(value);
+    return data.publicUrl || '/images/detail-image.png';
+  };
 
   // 카테고리 value를 label로 매핑
   const getCategoryLabel = (category: string): string => {
@@ -123,7 +132,7 @@ export default function Magazines() {
               {/* 이미지 영역 */}
               <div className={styles.cardImageContainer}>
                 <Image
-                  src={magazine.image_url && magazine.image_url.trim() !== '' ? magazine.image_url : '/images/detail-image.png'}
+                  src={resolveImageSrc(magazine.image_url)}
                   alt={magazine.title}
                   width={323}
                   height={200}

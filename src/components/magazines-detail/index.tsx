@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useMagazineDetail } from '@/app/magazines/[id]/hooks/index.func.binding';
+import { supabase } from '@/lib/supabase';
 import styles from './styles.module.css';
 
 interface MagazinesDetailProps {
@@ -13,6 +14,14 @@ interface MagazinesDetailProps {
 export default function MagazinesDetail({ id }: MagazinesDetailProps) {
   const router = useRouter();
   const { data, loading, error } = useMagazineDetail(id);
+
+  const resolveImageSrc = (raw: string | null | undefined): string => {
+    const value = (raw || '').trim();
+    if (value === '') return '/images/detail-image.png';
+    if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('/')) return value;
+    const { data } = supabase.storage.from('vibe-coding-storage').getPublicUrl(value);
+    return data.publicUrl || '/images/detail-image.png';
+  };
 
   // 카테고리 value를 label로 매핑
   const getCategoryLabel = (category: string): string => {
@@ -104,12 +113,11 @@ export default function MagazinesDetail({ id }: MagazinesDetailProps) {
       <div className={styles.detailContent}>
         {/* Image Container */}
         <div className={styles.imageContainer}>
-          <Image 
-            src={data.image_url || '/images/detail-image.png'} 
-            alt={data.title} 
-            width={852} 
-            height={400}
+          <img 
+            src={resolveImageSrc(data.image_url)} 
+            alt={data.title}
             className={styles.contentImage}
+            style={{ width: '100%', height: 'auto', display: 'block' }}
           />
           <div className={styles.imageGradient}></div>
           <div 
