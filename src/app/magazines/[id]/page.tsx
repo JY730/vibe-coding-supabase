@@ -1,5 +1,11 @@
 import MagazinesDetail from '@/components/magazines-detail';
 
-export default function MagazineDetailPage() {
-  return <MagazinesDetail />;
+interface MagazineDetailPageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default function MagazineDetailPage({ params }: MagazineDetailPageProps) {
+  return <MagazinesDetail id={params.id} />;
 }

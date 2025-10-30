@@ -227,6 +227,21 @@
   line-height: 18px;
 }
 
+/* 로딩 및 에러 상태 */
+.loadingContainer,
+.errorContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  font-size: 16px;
+  color: #666666;
+}
+
+.errorContainer {
+  color: #ef4444;
+}
+
 /* 반응형 디자인 */
 @media (max-width: 1200px) {
   .articlesGrid {
