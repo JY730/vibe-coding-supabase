@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useMagazineDetail } from '@/app/magazines/[id]/hooks/index.func.binding';
+import { supabase } from '@/lib/supabase';
 import styles from './styles.module.css';
 
 interface MagazinesDetailProps {
@@ -14,20 +15,43 @@ export default function MagazinesDetail({ id }: MagazinesDetailProps) {
   const router = useRouter();
   const { data, loading, error } = useMagazineDetail(id);
 
+  // 디버깅: 데이터 확인
+  React.useEffect(() => {
+    if (data) {
+      console.log('Magazine data:', data);
+      console.log('Image URL from DB:', data.image_url);
+    }
+  }, [data]);
+
   const resolveImageSrc = (raw: string | null | undefined): string => {
     const value = (raw || '').trim();
     if (value === '') return '/images/detail-image.png';
     if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('/')) return value;
     
-    // Supabase Storage의 이미지 변환 URL 직접 구성
-    // 형식: {supabaseUrl}/storage/v1/render/image/public/{bucket}/{path}?width=852&resize=contain&format=webp
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    if (!supabaseUrl) return '/images/detail-image.png';
+    // Supabase Storage의 이미지 변환 URL 생성: width 852px, resize contain
+    // 목록 페이지와 동일한 방식 사용 (transform 옵션 사용)
+    const { data } = supabase.storage
+      .from('vibe-coding-storage')
+      .getPublicUrl(value, {
+        transform: {
+          width: 852,
+          resize: 'contain'
+        }
+      });
     
-    const bucket = 'vibe-coding-storage';
-    // 경로의 각 세그먼트를 인코딩 (슬래시는 유지)
-    const encodedPath = value.split('/').map(segment => encodeURIComponent(segment)).join('/');
-    const transformedUrl = `${supabaseUrl}/storage/v1/render/image/public/${bucket}/${encodedPath}?width=852&resize=contain&format=webp`;
+    const transformedUrl = data.publicUrl || '';
+    if (!transformedUrl) {
+      console.warn('Failed to generate public URL for:', value);
+      return '/images/detail-image.png';
+    }
+    
+    // format=webp 파라미터는 Supabase의 transform 옵션이 자동으로 처리하거나
+    // 지원하지 않을 수 있으므로 일단 기본 변환 URL 사용
+    // 필요시 브라우저가 자동으로 webp를 지원하는지 확인
+    console.log('Image URL:', {
+      original: value,
+      transformedUrl
+    });
     
     return transformedUrl;
   };
@@ -127,6 +151,14 @@ export default function MagazinesDetail({ id }: MagazinesDetailProps) {
             alt={data.title}
             className={styles.contentImage}
             style={{ width: '100%', height: 'auto', display: 'block' }}
+            onError={(e) => {
+              console.error('Image load error:', {
+                src: e.currentTarget.src,
+                imageUrl: data.image_url
+              });
+              // 이미지 로드 실패 시 fallback 이미지로 변경
+              e.currentTarget.src = '/images/detail-image.png';
+            }}
           />
           <div className={styles.imageGradient}></div>
           <div 
