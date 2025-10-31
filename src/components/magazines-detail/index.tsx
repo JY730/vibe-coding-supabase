@@ -4,7 +4,6 @@ import React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useMagazineDetail } from '@/app/magazines/[id]/hooks/index.func.binding';
-import { supabase } from '@/lib/supabase';
 import styles from './styles.module.css';
 
 interface MagazinesDetailProps {
@@ -19,8 +18,18 @@ export default function MagazinesDetail({ id }: MagazinesDetailProps) {
     const value = (raw || '').trim();
     if (value === '') return '/images/detail-image.png';
     if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('/')) return value;
-    const { data } = supabase.storage.from('vibe-coding-storage').getPublicUrl(value);
-    return data.publicUrl || '/images/detail-image.png';
+    
+    // Supabase Storage의 이미지 변환 URL 직접 구성
+    // 형식: {supabaseUrl}/storage/v1/render/image/public/{bucket}/{path}?width=852&resize=contain&format=webp
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    if (!supabaseUrl) return '/images/detail-image.png';
+    
+    const bucket = 'vibe-coding-storage';
+    // 경로의 각 세그먼트를 인코딩 (슬래시는 유지)
+    const encodedPath = value.split('/').map(segment => encodeURIComponent(segment)).join('/');
+    const transformedUrl = `${supabaseUrl}/storage/v1/render/image/public/${bucket}/${encodedPath}?width=852&resize=contain&format=webp`;
+    
+    return transformedUrl;
   };
 
   // 카테고리 value를 label로 매핑
