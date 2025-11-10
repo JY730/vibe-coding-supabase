@@ -41,19 +41,13 @@ export const useMagazines = (): UseMagazinesReturn => {
           const path = (item.image_url || '').trim();
           if (!path) return { ...item, image_url: '' };
           // Supabase Storage public URL 생성 (버킷: vibe-coding-storage)
-          // 썸네일 변환: width 323px, resize: contain
-          // format 옵션을 생략하면 자동으로 WebP로 최적화됨
+          // transform 옵션 제거 (권한 문제 해결)
           const { data: pub } = supabase
             .storage
             .from('vibe-coding-storage')
-            .getPublicUrl(path, {
-              transform: {
-                width: 323,
-                resize: 'contain'
-              }
-            });
-          const thumbnailUrl = pub.publicUrl || '';
-          return { ...item, image_url: thumbnailUrl || '' };
+            .getPublicUrl(path);
+          const publicUrl = pub.publicUrl || '';
+          return { ...item, image_url: publicUrl || '' };
         });
 
         setMagazines(normalized);

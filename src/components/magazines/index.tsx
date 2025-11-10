@@ -15,16 +15,10 @@ export default function Magazines() {
     const value = (raw || '').trim();
     if (value === '') return '/images/detail-image.png';
     if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('/')) return value;
-    // 썸네일 변환: width 323px, resize: contain
-    // format 옵션을 생략하면 자동으로 WebP로 최적화됨
-    const { data } = supabase.storage.from('vibe-coding-storage').getPublicUrl(value, {
-      transform: {
-        width: 323,
-        resize: 'contain'
-      }
-    });
-    const thumbnailUrl = data.publicUrl || '';
-    return thumbnailUrl || '/images/detail-image.png';
+    // Supabase Storage의 Public URL 생성 (transform 옵션 제거)
+    const { data } = supabase.storage.from('vibe-coding-storage').getPublicUrl(value);
+    const publicUrl = data.publicUrl || '';
+    return publicUrl || '/images/detail-image.png';
   };
 
   // 카테고리 value를 label로 매핑

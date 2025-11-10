@@ -28,32 +28,24 @@ export default function MagazinesDetail({ id }: MagazinesDetailProps) {
     if (value === '') return '/images/detail-image.png';
     if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('/')) return value;
     
-    // Supabase Storage의 이미지 변환 URL 생성: width 852px, resize contain
-    // 목록 페이지와 동일한 방식 사용 (transform 옵션 사용)
+    // Supabase Storage의 Public URL 생성
+    // transform 옵션 없이 기본 URL만 사용 (권한 문제 해결)
     const { data } = supabase.storage
       .from('vibe-coding-storage')
-      .getPublicUrl(value, {
-        transform: {
-          width: 852,
-          resize: 'contain'
-        }
-      });
+      .getPublicUrl(value);
     
-    const transformedUrl = data.publicUrl || '';
-    if (!transformedUrl) {
+    const publicUrl = data.publicUrl || '';
+    if (!publicUrl) {
       console.warn('Failed to generate public URL for:', value);
       return '/images/detail-image.png';
     }
     
-    // format=webp 파라미터는 Supabase의 transform 옵션이 자동으로 처리하거나
-    // 지원하지 않을 수 있으므로 일단 기본 변환 URL 사용
-    // 필요시 브라우저가 자동으로 webp를 지원하는지 확인
     console.log('Image URL:', {
       original: value,
-      transformedUrl
+      publicUrl
     });
     
-    return transformedUrl;
+    return publicUrl;
   };
 
   // 카테고리 value를 label로 매핑
