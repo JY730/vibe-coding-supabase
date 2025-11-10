@@ -78,10 +78,22 @@ export const usePayment = () => {
         return;
       }
 
-      // 2. 빌링키 발급 요청
+      // 2. 환경 변수 확인
+      const storeId = process.env.NEXT_PUBLIC_PORTONE_STORE_ID;
+      const channelKey = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY;
+
+      if (!storeId || !channelKey) {
+        console.error("포트원 환경 변수 누락:", { storeId, channelKey });
+        alert("결제 설정이 올바르지 않습니다. 관리자에게 문의하세요.");
+        return;
+      }
+
+      console.log("포트원 빌링키 발급 요청:", { storeId, channelKey });
+
+      // 3. 빌링키 발급 요청
       const issueResponse = await window.PortOne.requestIssueBillingKey({
-        storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID || "",
-        channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || "",
+        storeId,
+        channelKey,
         billingKeyMethod: "CARD",
         customer: {
           id: `customer_${Date.now()}`,
@@ -90,19 +102,23 @@ export const usePayment = () => {
         },
       });
 
-      // 3. 빌링키 발급 실패 처리
+      // 4. 빌링키 발급 실패 처리
       if (issueResponse.code !== undefined) {
+        console.error("빌링키 발급 실패:", issueResponse);
         alert(issueResponse.message || "빌링키 발급에 실패했습니다.");
         return;
       }
 
-      // 4. 빌링키 발급 성공 확인
+      // 5. 빌링키 발급 성공 확인
       if (!issueResponse.billingKey) {
+        console.error("빌링키 없음:", issueResponse);
         alert("빌링키가 발급되지 않았습니다.");
         return;
       }
 
-      // 5. 결제 API 요청
+      console.log("빌링키 발급 성공:", issueResponse.billingKey);
+
+      // 6. 결제 API 요청
       const paymentRequestData: PaymentRequestData = {
         billingKey: issueResponse.billingKey,
         orderName: "IT 매거진 월간 구독",
@@ -122,13 +138,15 @@ export const usePayment = () => {
 
       const paymentData: PaymentResponseData = await paymentResponse.json();
 
-      // 6. 결제 실패 처리
+      // 7. 결제 실패 처리
       if (!paymentData.success) {
+        console.error("결제 실패:", paymentData);
         alert(paymentData.message || "결제에 실패했습니다.");
         return;
       }
 
-      // 7. 결제 성공 처리
+      // 8. 결제 성공 처리
+      console.log("결제 성공:", paymentData);
       alert("구독에 성공하였습니다.");
       router.push("/magazines");
 
