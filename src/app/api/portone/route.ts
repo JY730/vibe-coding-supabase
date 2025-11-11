@@ -55,14 +55,17 @@ type ScheduleListResponse = {
 };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const PORTONE_SECRET = process.env.PORTONE_SECRET || '';
+const supabaseKey =
+  process.env.SUPABASE_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  '';
+const PORTONE_API_SECRET = process.env.PORTONE_API_SECRET || '';
 
 const getSupabaseClient = () => {
-  if (!supabaseUrl || !supabaseServiceKey) {
+  if (!supabaseUrl || !supabaseKey) {
     throw new Error('Supabase 환경 변수가 설정되지 않았습니다.');
   }
-  return createClient(supabaseUrl, supabaseServiceKey);
+  return createClient(supabaseUrl, supabaseKey);
 };
 
 const extractBillingKey = (paymentData: PortOnePaymentData): string | undefined => {
@@ -216,7 +219,7 @@ async function handlePaidStatus(paymentData: PortOnePaymentData, payment_id: str
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `PortOne ${PORTONE_SECRET}`,
+          Authorization: `PortOne ${PORTONE_API_SECRET}`,
           },
           body: JSON.stringify(schedulePayload),
         }
@@ -416,7 +419,7 @@ async function handleCancelledStatus(paymentData: PortOnePaymentData, payment_id
     const scheduleListResponse = await axios.get<ScheduleListResponse>('https://api.portone.io/payment-schedules', {
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `PortOne ${PORTONE_SECRET}`,
+        Authorization: `PortOne ${PORTONE_API_SECRET}`,
       },
       data: {
         filter: {
@@ -446,7 +449,7 @@ async function handleCancelledStatus(paymentData: PortOnePaymentData, payment_id
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `PortOne ${PORTONE_SECRET}`,
+        Authorization: `PortOne ${PORTONE_API_SECRET}`,
           },
           data: {
             scheduleIds: [targetSchedule.id],
@@ -522,11 +525,11 @@ async function handleCancelledStatus(paymentData: PortOnePaymentData, payment_id
 export async function POST(request: NextRequest) {
   try {
     // 환경 변수 체크
-    if (!PORTONE_SECRET) {
+  if (!PORTONE_API_SECRET) {
       return NextResponse.json(
         {
           success: false,
-          error: 'PORTONE_SECRET 환경 변수가 설정되지 않았습니다.',
+        error: 'PORTONE_API_SECRET 환경 변수가 설정되지 않았습니다.',
         },
         { status: 500 }
       );
@@ -563,7 +566,7 @@ export async function POST(request: NextRequest) {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `PortOne ${PORTONE_SECRET}`,
+          Authorization: `PortOne ${PORTONE_API_SECRET}`,
         },
       }
     );
