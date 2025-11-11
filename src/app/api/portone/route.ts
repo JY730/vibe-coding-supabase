@@ -10,11 +10,17 @@ type PortOnePaymentCustomer = {
   id?: string;
 };
 
+type PortOnePaymentMethod = {
+  type?: string;
+  billingKey?: string;
+};
+
 type PortOnePaymentData = {
   amount?: PortOnePaymentAmount;
-  billingKey?: string;
+  billingKey?: string; // fallback for 구형 타입
   orderName?: string;
   customer?: PortOnePaymentCustomer;
+  method?: PortOnePaymentMethod;
 };
 
 type PaymentRow = {
@@ -101,9 +107,16 @@ async function handlePaidStatus(paymentData: PortOnePaymentData, payment_id: str
   // 3. 다음 달 구독 예약
   console.log('📅 3단계: 다음 달 구독 예약 시작...');
   
+  const billingKey =
+    paymentData.method?.billingKey ?? paymentData.billingKey;
+
+  if (!billingKey) {
+    throw new Error('포트원 결제 정보에 billingKey가 없습니다.');
+  }
+
   const schedulePayload = {
     payment: {
-      billingKey: paymentData.billingKey,
+      billingKey,
       orderName: paymentData.orderName,
       customer: {
         id: paymentData.customer?.id,
@@ -147,7 +160,7 @@ async function handlePaidStatus(paymentData: PortOnePaymentData, payment_id: str
         data: {
           payment_id,
           amount: paymentData.amount?.total,
-          billingKey: paymentData.billingKey,
+          billingKey,
         },
       },
       step2_database_insert: {
@@ -245,6 +258,62 @@ async function handleCancelledStatus(paymentData: PortOnePaymentData, payment_id
   untilDate.setDate(untilDate.getDate() + 1);
 
   try {
+    const billingKey =
+      paymentData.method?.billingKey ?? paymentData.billingKey;
+
+    if (!billingKey) {
+      console.warn(
+        '⚠️ 결제 정보에 billingKey가 없어 예약 조회 및 취소 단계를 건너뜁니다.'
+      );
+
+      const checklist = {
+        success: true,
+        steps: {
+          step1_payment_inquiry: {
+            status: 'completed',
+            message: '포트원 결제 정보 조회 완료',
+            data: {
+              payment_id,
+              billingKey: null,
+            },
+          },
+          step2_database_select: {
+            status: 'completed',
+            message: 'Supabase 기존 결제 정보 조회 완료',
+            data: {
+              transaction_key: existingPayment.transaction_key,
+              amount: existingPayment.amount,
+              next_schedule_id: existingPayment.next_schedule_id,
+            },
+          },
+          step3_database_insert_cancel: {
+            status: 'completed',
+            message: 'Supabase 취소 정보 저장 완료',
+            data: {
+              transaction_key: cancelRecord.transaction_key,
+              amount: cancelRecord.amount,
+              status: cancelRecord.status,
+            },
+          },
+          step4_schedule_inquiry: {
+            status: 'skipped',
+            message: 'billingKey가 없어 예약 결제 조회를 건너뜀',
+            data: null,
+          },
+          step5_schedule_cancel: {
+            status: 'skipped',
+            message: 'billingKey가 없어 예약 결제 취소를 건너뜀',
+          },
+        },
+        timestamp: new Date().toISOString(),
+      };
+
+      console.log('✅ 전체 취소 프로세스 완료(예약 단계 생략)');
+      console.log('📋 체크리스트:', JSON.stringify(checklist, null, 2));
+
+      return NextResponse.json(checklist);
+    }
+
     const scheduleListResponse = await axios.get<ScheduleListResponse>(
       'https://api.portone.io/payment-schedules',
       {
@@ -254,7 +323,7 @@ async function handleCancelledStatus(paymentData: PortOnePaymentData, payment_id
         },
         data: {
           filter: {
-            billingKey: paymentData.billingKey,
+            billingKey,
             from: fromDate.toISOString(),
             until: untilDate.toISOString(),
           },
@@ -301,7 +370,7 @@ async function handleCancelledStatus(paymentData: PortOnePaymentData, payment_id
           message: '포트원 결제 정보 조회 완료',
           data: {
             payment_id,
-            billingKey: paymentData.billingKey,
+            billingKey,
           },
         },
         step2_database_select: {
@@ -368,14 +437,32 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { payment_id, status } = body;
+    const { payment_id, paymentId, status } = body;
+    const resolvedPaymentId = paymentId ?? payment_id;
 
-    console.log('📥 포트원 웹훅 수신:', { payment_id, status });
+    if (!resolvedPaymentId) {
+      console.error('❌ 유효한 paymentId를 찾을 수 없습니다:', body);
+      return NextResponse.json(
+        {
+          success: false,
+          error: '유효한 paymentId가 제공되지 않았습니다.',
+        },
+        { status: 400 }
+      );
+    }
+
+    const normalizedStatus =
+      typeof status === 'string' ? status.toLowerCase() : '';
+
+    console.log('📥 포트원 웹훅 수신:', {
+      paymentId: resolvedPaymentId,
+      status,
+    });
 
     // 1. 결제 정보 조회
     console.log('🔍 1단계: 포트원 결제 정보 조회 시작...');
     const paymentResponse = await fetch(
-      `https://api.portone.io/payments/${payment_id}`,
+      `https://api.portone.io/payments/${resolvedPaymentId}`,
       {
         method: 'GET',
         headers: {
@@ -394,12 +481,13 @@ export async function POST(request: NextRequest) {
     console.log('✅ 포트원 결제 정보 조회 성공:', paymentData);
 
     // status에 따라 분기 처리
-    if (status === 'Paid') {
-      return await handlePaidStatus(paymentData, payment_id);
-    } else if (status === 'Cancelled') {
-      return await handleCancelledStatus(paymentData, payment_id);
-    } else {
-      throw new Error(`지원하지 않는 status: ${status}`);
+    switch (normalizedStatus) {
+      case 'paid':
+        return await handlePaidStatus(paymentData, resolvedPaymentId);
+      case 'cancelled':
+        return await handleCancelledStatus(paymentData, resolvedPaymentId);
+      default:
+        throw new Error(`지원하지 않는 status: ${status}`);
     }
 
   } catch (error) {
