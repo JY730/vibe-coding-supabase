@@ -43,7 +43,17 @@ export const usePaymentStatus = (): UsePaymentStatusResult => {
     const grouped = new Map<string, PaymentRecord>();
 
     for (const record of records) {
-      if (!grouped.has(record.transaction_key)) {
+      const existing = grouped.get(record.transaction_key);
+
+      if (!existing) {
+        grouped.set(record.transaction_key, record);
+        continue;
+      }
+
+      const currentCreatedAt = new Date(record.created_at).getTime();
+      const existingCreatedAt = new Date(existing.created_at).getTime();
+
+      if (currentCreatedAt > existingCreatedAt) {
         grouped.set(record.transaction_key, record);
       }
     }
