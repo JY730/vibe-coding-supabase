@@ -176,7 +176,12 @@ async function handlePaidStatus(paymentData: PortOnePaymentData, payment_id: str
   // 3. 다음 달 구독 예약
   console.log('📅 3단계: 다음 달 구독 예약 시작...');
   const billingKey = extractBillingKey(paymentData);
-  const customerId = extractCustomerId(paymentData);
+  const customerId =
+    extractCustomerId(paymentData) ??
+    paymentData.customer?.id ??
+    paymentData.payment?.customer?.id ??
+    paymentData.billingKeyPayment?.customerId ??
+    `customer_${payment_id}`;
 
   let scheduleResult:
     | {
@@ -206,13 +211,12 @@ async function handlePaidStatus(paymentData: PortOnePaymentData, payment_id: str
       timeToPay: nextScheduleAt.toISOString(),
     };
 
-    if (customerId) {
-      (schedulePayload.payment as Record<string, unknown>).customer = {
-        id: customerId,
-      };
-    }
+    (schedulePayload.payment as Record<string, unknown>).customer = {
+      id: customerId,
+    };
 
     try {
+      console.log('📤 구독 예약 요청 payload:', schedulePayload);
       const scheduleResponse = await fetch(
         `https://api.portone.io/payments/${nextScheduleId}/schedule`,
         {
