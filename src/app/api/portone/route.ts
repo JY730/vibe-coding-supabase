@@ -47,7 +47,6 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const PORTONE_SECRET = process.env.PORTONE_SECRET || '';
 
-// 서버 사이드에서 사용할 Supabase 클라이언트 (Service Role Key 사용)
 const getSupabaseClient = () => {
   if (!supabaseUrl || !supabaseServiceKey) {
     throw new Error('Supabase 환경 변수가 설정되지 않았습니다.');
@@ -61,6 +60,42 @@ async function handlePaidStatus(paymentData: PortOnePaymentData, payment_id: str
   console.log('💾 2단계: Supabase에 결제 정보 저장 시작...');
   
   const supabase = getSupabaseClient();
+
+  const {
+    data: existingPayments,
+    error: existingCheckError,
+  } = (await supabase
+    .from('payment')
+    .select('transaction_key')
+    .eq('transaction_key', payment_id)) as {
+    data: Pick<PaymentRow, 'transaction_key'>[] | null;
+    error: PostgrestError | null;
+  };
+
+  if (existingCheckError) {
+    console.error('❌ Supabase 기존 결제 확인 실패:', existingCheckError);
+    throw new Error(`Supabase 기존 결제 확인 실패: ${existingCheckError.message}`);
+  }
+
+  if (existingPayments && existingPayments.length > 0) {
+    console.log(
+      'ℹ️ Supabase에 이미 동일한 transaction_key가 존재하여 Paid 처리를 건너뜁니다.'
+    );
+
+    return NextResponse.json({
+      success: true,
+      steps: {
+        step1_payment_inquiry: {
+          status: 'skipped',
+          message: '이미 Supabase에 저장된 결제입니다.',
+          data: {
+            payment_id,
+          },
+        },
+      },
+      timestamp: new Date().toISOString(),
+    });
+  }
   
   const now = new Date();
   const endAt = new Date(now);
