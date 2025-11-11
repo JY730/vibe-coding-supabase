@@ -1,5 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type PostgrestError } from '@supabase/supabase-js';
+import axios from 'axios';
+
+type PortOnePaymentAmount = {
+  total?: number;
+};
+
+type PortOnePaymentCustomer = {
+  id?: string;
+};
+
+type PortOnePaymentData = {
+  amount?: PortOnePaymentAmount;
+  billingKey?: string;
+  orderName?: string;
+  customer?: PortOnePaymentCustomer;
+};
+
+type PaymentRow = {
+  transaction_key: string;
+  amount: number;
+  status: string;
+  start_at: string;
+  end_at: string;
+  end_grace_at: string;
+  next_schedule_at: string;
+  next_schedule_id: string;
+};
+
+type ScheduleItem = {
+  id?: string;
+  paymentId?: string;
+};
+
+type ScheduleListResponse = {
+  items?: ScheduleItem[];
+};
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
@@ -12,6 +48,311 @@ const getSupabaseClient = () => {
   }
   return createClient(supabaseUrl, supabaseServiceKey);
 };
+
+// Paid 시나리오 처리 함수
+async function handlePaidStatus(paymentData: PortOnePaymentData, payment_id: string) {
+  // 2. Supabase에 결제 정보 저장
+  console.log('💾 2단계: Supabase에 결제 정보 저장 시작...');
+  
+  const supabase = getSupabaseClient();
+  
+  const now = new Date();
+  const endAt = new Date(now);
+  endAt.setDate(endAt.getDate() + 30);
+  
+  const endGraceAt = new Date(now);
+  endGraceAt.setDate(endGraceAt.getDate() + 31);
+  
+  // 다음 결제 예약 시각: end_at + 1일 오전 10시~11시 사이 임의 시각
+  const nextScheduleAt = new Date(endAt);
+  nextScheduleAt.setDate(nextScheduleAt.getDate() + 1);
+  nextScheduleAt.setHours(10, Math.floor(Math.random() * 60), 0, 0);
+  
+  // UUID 생성
+  const nextScheduleId = crypto.randomUUID();
+
+  const paymentRecord: PaymentRow = {
+    transaction_key: payment_id,
+    amount: paymentData.amount?.total || 0,
+    status: 'Paid',
+    start_at: now.toISOString(),
+    end_at: endAt.toISOString(),
+    end_grace_at: endGraceAt.toISOString(),
+    next_schedule_at: nextScheduleAt.toISOString(),
+    next_schedule_id: nextScheduleId,
+  };
+
+  const {
+    data: insertedPayment,
+    error: insertError,
+  } = (await supabase
+    .from('payment')
+    .insert(paymentRecord)
+    .select()
+    .single()) as { data: PaymentRow | null; error: PostgrestError | null };
+
+  if (insertError) {
+    console.error('❌ Supabase 저장 실패:', insertError);
+    throw new Error(`Supabase 저장 실패: ${insertError.message}`);
+  }
+
+  console.log('✅ Supabase 저장 성공:', insertedPayment);
+
+  // 3. 다음 달 구독 예약
+  console.log('📅 3단계: 다음 달 구독 예약 시작...');
+  
+  const schedulePayload = {
+    payment: {
+      billingKey: paymentData.billingKey,
+      orderName: paymentData.orderName,
+      customer: {
+        id: paymentData.customer?.id,
+      },
+      amount: {
+        total: paymentData.amount?.total || 0,
+      },
+      currency: 'KRW',
+    },
+    timeToPay: nextScheduleAt.toISOString(),
+  };
+
+  const scheduleResponse = await fetch(
+    `https://api.portone.io/payments/${nextScheduleId}/schedule`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `PortOne ${PORTONE_SECRET}`,
+      },
+      body: JSON.stringify(schedulePayload),
+    }
+  );
+
+  if (!scheduleResponse.ok) {
+    const errorText = await scheduleResponse.text();
+    console.error('❌ 구독 예약 실패:', scheduleResponse.status, errorText);
+    throw new Error(`구독 예약 실패: ${errorText}`);
+  }
+
+  const scheduleData = await scheduleResponse.json();
+  console.log('✅ 구독 예약 성공:', scheduleData);
+
+  // 체크리스트 생성
+  const checklist = {
+    success: true,
+    steps: {
+      step1_payment_inquiry: {
+        status: 'completed',
+        message: '포트원 결제 정보 조회 완료',
+        data: {
+          payment_id,
+          amount: paymentData.amount?.total,
+          billingKey: paymentData.billingKey,
+        },
+      },
+      step2_database_insert: {
+        status: 'completed',
+        message: 'Supabase payment 테이블 저장 완료',
+        data: {
+          transaction_key: payment_id,
+          amount: paymentRecord.amount,
+          status: paymentRecord.status,
+          start_at: paymentRecord.start_at,
+          end_at: paymentRecord.end_at,
+          end_grace_at: paymentRecord.end_grace_at,
+          next_schedule_at: paymentRecord.next_schedule_at,
+          next_schedule_id: paymentRecord.next_schedule_id,
+        },
+      },
+      step3_subscription_schedule: {
+        status: 'completed',
+        message: '다음 달 구독 예약 완료',
+        data: {
+          next_schedule_id: nextScheduleId,
+          next_schedule_at: nextScheduleAt.toISOString(),
+        },
+      },
+    },
+    timestamp: new Date().toISOString(),
+  };
+
+  console.log('✅ 전체 프로세스 완료');
+  console.log('📋 체크리스트:', JSON.stringify(checklist, null, 2));
+
+  return NextResponse.json(checklist);
+}
+
+// Cancelled 시나리오 처리 함수
+async function handleCancelledStatus(paymentData: PortOnePaymentData, payment_id: string) {
+  const supabase = getSupabaseClient();
+
+  // 3-1-2) Supabase에서 기존 결제 정보 조회
+  console.log('🔍 2단계: Supabase에서 기존 결제 정보 조회 시작...');
+  
+  const {
+    data: existingPayment,
+    error: selectError,
+  } = (await supabase
+    .from('payment')
+    .select('*')
+    .eq('transaction_key', payment_id)
+    .single()) as { data: PaymentRow | null; error: PostgrestError | null };
+
+  if (selectError || !existingPayment) {
+    console.error('❌ Supabase 조회 실패:', selectError);
+    throw new Error(`Supabase 조회 실패: ${selectError?.message || '데이터 없음'}`);
+  }
+
+  console.log('✅ Supabase 조회 성공:', existingPayment);
+
+  // 3-1-3) Supabase에 취소 정보 저장
+  console.log('💾 3단계: Supabase에 취소 정보 저장 시작...');
+  
+  const cancelRecord: PaymentRow = {
+    transaction_key: existingPayment.transaction_key,
+    amount: -existingPayment.amount, // 음수로 저장
+    status: 'Cancel',
+    start_at: existingPayment.start_at,
+    end_at: existingPayment.end_at,
+    end_grace_at: existingPayment.end_grace_at,
+    next_schedule_at: existingPayment.next_schedule_at,
+    next_schedule_id: existingPayment.next_schedule_id,
+  };
+
+  const {
+    data: insertedCancel,
+    error: insertError,
+  } = (await supabase
+    .from('payment')
+    .insert(cancelRecord)
+    .select()
+    .single()) as { data: PaymentRow | null; error: PostgrestError | null };
+
+  if (insertError) {
+    console.error('❌ Supabase 취소 정보 저장 실패:', insertError);
+    throw new Error(`Supabase 취소 정보 저장 실패: ${insertError.message}`);
+  }
+
+  console.log('✅ Supabase 취소 정보 저장 성공:', insertedCancel);
+
+  // 3-2-1) 예약된 결제정보 조회
+  console.log('🔍 4단계: 예약된 결제정보 조회 시작...');
+  
+  const fromDate = new Date(existingPayment.next_schedule_at);
+  fromDate.setDate(fromDate.getDate() - 1);
+  
+  const untilDate = new Date(existingPayment.next_schedule_at);
+  untilDate.setDate(untilDate.getDate() + 1);
+
+  try {
+    const scheduleListResponse = await axios.get<ScheduleListResponse>(
+      'https://api.portone.io/payment-schedules',
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `PortOne ${PORTONE_SECRET}`,
+        },
+        data: {
+          filter: {
+            billingKey: paymentData.billingKey,
+            from: fromDate.toISOString(),
+            until: untilDate.toISOString(),
+          },
+        },
+      }
+    );
+
+    console.log('✅ 예약된 결제정보 조회 성공:', scheduleListResponse.data);
+
+    // 3-2-2) schedule 객체의 id 추출
+    const scheduleItems: ScheduleItem[] = scheduleListResponse.data.items || [];
+    const targetSchedule = scheduleItems.find(
+      (item) => item.paymentId === existingPayment.next_schedule_id
+    );
+
+    if (!targetSchedule) {
+      console.warn('⚠️ 취소할 예약 결제를 찾지 못했습니다.');
+    } else {
+      // 3-2-3) 예약된 결제 취소
+      console.log('🗑️ 5단계: 예약된 결제 취소 시작...');
+      
+      const cancelScheduleResponse = await axios.delete(
+        'https://api.portone.io/payment-schedules',
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `PortOne ${PORTONE_SECRET}`,
+          },
+          data: {
+            scheduleIds: [targetSchedule.id],
+          },
+        }
+      );
+
+      console.log('✅ 예약된 결제 취소 성공:', cancelScheduleResponse.data);
+    }
+
+    // 체크리스트 생성
+    const checklist = {
+      success: true,
+      steps: {
+        step1_payment_inquiry: {
+          status: 'completed',
+          message: '포트원 결제 정보 조회 완료',
+          data: {
+            payment_id,
+            billingKey: paymentData.billingKey,
+          },
+        },
+        step2_database_select: {
+          status: 'completed',
+          message: 'Supabase 기존 결제 정보 조회 완료',
+          data: {
+            transaction_key: existingPayment.transaction_key,
+            amount: existingPayment.amount,
+            next_schedule_id: existingPayment.next_schedule_id,
+          },
+        },
+        step3_database_insert_cancel: {
+          status: 'completed',
+          message: 'Supabase 취소 정보 저장 완료',
+          data: {
+            transaction_key: cancelRecord.transaction_key,
+            amount: cancelRecord.amount,
+            status: cancelRecord.status,
+          },
+        },
+        step4_schedule_inquiry: {
+          status: targetSchedule ? 'completed' : 'skipped',
+          message: targetSchedule
+            ? '예약된 결제 정보 조회 완료'
+            : '취소할 예약 결제를 찾지 못함',
+          data: targetSchedule
+            ? {
+                schedule_id: targetSchedule.id,
+                payment_id: targetSchedule.paymentId,
+              }
+            : null,
+        },
+        step5_schedule_cancel: {
+          status: targetSchedule ? 'completed' : 'skipped',
+          message: targetSchedule
+            ? '예약된 결제 취소 완료'
+            : '취소할 예약 결제 없음',
+        },
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    console.log('✅ 전체 취소 프로세스 완료');
+    console.log('📋 체크리스트:', JSON.stringify(checklist, null, 2));
+
+    return NextResponse.json(checklist);
+  } catch (error) {
+    console.error('❌ 예약 결제 조회/취소 중 오류:', error);
+    throw error;
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,135 +390,18 @@ export async function POST(request: NextRequest) {
       throw new Error('포트원 결제 정보 조회 실패');
     }
 
-    const paymentData = await paymentResponse.json();
+    const paymentData = (await paymentResponse.json()) as PortOnePaymentData;
     console.log('✅ 포트원 결제 정보 조회 성공:', paymentData);
 
-    // 2. Supabase에 결제 정보 저장
-    console.log('💾 2단계: Supabase에 결제 정보 저장 시작...');
-    
-    const supabase = getSupabaseClient();
-    
-    const now = new Date();
-    const endAt = new Date(now);
-    endAt.setDate(endAt.getDate() + 30);
-    
-    const endGraceAt = new Date(now);
-    endGraceAt.setDate(endGraceAt.getDate() + 31);
-    
-    // 다음 결제 예약 시각: end_at + 1일 오전 10시~11시 사이 임의 시각
-    const nextScheduleAt = new Date(endAt);
-    nextScheduleAt.setDate(nextScheduleAt.getDate() + 1);
-    nextScheduleAt.setHours(10, Math.floor(Math.random() * 60), 0, 0);
-    
-    // UUID 생성
-    const nextScheduleId = crypto.randomUUID();
-
-    const paymentRecord = {
-      transaction_key: payment_id,
-      amount: paymentData.amount?.total || 0,
-      status: 'Paid',
-      start_at: now.toISOString(),
-      end_at: endAt.toISOString(),
-      end_grace_at: endGraceAt.toISOString(),
-      next_schedule_at: nextScheduleAt.toISOString(),
-      next_schedule_id: nextScheduleId,
-    };
-
-    const { data: insertedPayment, error: insertError } = await supabase
-      .from('payment')
-      .insert(paymentRecord)
-      .select()
-      .single();
-
-    if (insertError) {
-      console.error('❌ Supabase 저장 실패:', insertError);
-      throw new Error(`Supabase 저장 실패: ${insertError.message}`);
+    // status에 따라 분기 처리
+    if (status === 'Paid') {
+      return await handlePaidStatus(paymentData, payment_id);
+    } else if (status === 'Cancelled') {
+      return await handleCancelledStatus(paymentData, payment_id);
+    } else {
+      throw new Error(`지원하지 않는 status: ${status}`);
     }
 
-    console.log('✅ Supabase 저장 성공:', insertedPayment);
-
-    // 3. 다음 달 구독 예약
-    console.log('📅 3단계: 다음 달 구독 예약 시작...');
-    
-    const schedulePayload = {
-      payment: {
-        billingKey: paymentData.billingKey,
-        orderName: paymentData.orderName,
-        customer: {
-          id: paymentData.customer?.id,
-        },
-        amount: {
-          total: paymentData.amount?.total || 0,
-        },
-        currency: 'KRW',
-      },
-      timeToPay: nextScheduleAt.toISOString(),
-    };
-
-    const scheduleResponse = await fetch(
-      `https://api.portone.io/payments/${nextScheduleId}/schedule`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `PortOne ${PORTONE_SECRET}`,
-        },
-        body: JSON.stringify(schedulePayload),
-      }
-    );
-
-    if (!scheduleResponse.ok) {
-      const errorText = await scheduleResponse.text();
-      console.error('❌ 구독 예약 실패:', scheduleResponse.status, errorText);
-      throw new Error(`구독 예약 실패: ${errorText}`);
-    }
-
-    const scheduleData = await scheduleResponse.json();
-    console.log('✅ 구독 예약 성공:', scheduleData);
-
-    // 체크리스트 생성
-    const checklist = {
-      success: true,
-      steps: {
-        step1_payment_inquiry: {
-          status: 'completed',
-          message: '포트원 결제 정보 조회 완료',
-          data: {
-            payment_id,
-            amount: paymentData.amount?.total,
-            billingKey: paymentData.billingKey,
-          },
-        },
-        step2_database_insert: {
-          status: 'completed',
-          message: 'Supabase payment 테이블 저장 완료',
-          data: {
-            transaction_key: payment_id,
-            amount: paymentRecord.amount,
-            status: paymentRecord.status,
-            start_at: paymentRecord.start_at,
-            end_at: paymentRecord.end_at,
-            end_grace_at: paymentRecord.end_grace_at,
-            next_schedule_at: paymentRecord.next_schedule_at,
-            next_schedule_id: paymentRecord.next_schedule_id,
-          },
-        },
-        step3_subscription_schedule: {
-          status: 'completed',
-          message: '다음 달 구독 예약 완료',
-          data: {
-            next_schedule_id: nextScheduleId,
-            next_schedule_at: nextScheduleAt.toISOString(),
-          },
-        },
-      },
-      timestamp: new Date().toISOString(),
-    };
-
-    console.log('✅ 전체 프로세스 완료');
-    console.log('📋 체크리스트:', JSON.stringify(checklist, null, 2));
-
-    return NextResponse.json(checklist);
   } catch (error) {
     console.error('❌ 오류 발생:', error);
     

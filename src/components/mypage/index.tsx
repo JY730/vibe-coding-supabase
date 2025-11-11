@@ -2,18 +2,25 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { usePaymentCancel } from './hooks/index.payment.cancel.hook';
 import styles from './styles.module.css';
 
 export default function Mypage() {
   const router = useRouter();
+  const { isLoading, cancelSubscription } = usePaymentCancel();
 
   const handleListClick = () => {
     router.push('/magazines');
   };
 
-  const handleCancelSubscription = () => {
-    // 구독 취소 로직 추가 예정
-    console.log('구독 취소');
+  const handleCancelSubscription = async () => {
+    // TODO: 실제 transactionKey는 사용자의 구독 정보에서 가져와야 합니다.
+    // 현재는 예시로 하드코딩된 값을 사용합니다.
+    const transactionKey = 'example-transaction-key';
+    
+    if (confirm('정말로 구독을 취소하시겠습니까?')) {
+      await cancelSubscription({ transactionKey });
+    }
   };
 
   return (
@@ -109,8 +116,9 @@ export default function Mypage() {
           <button
             className={styles.cancelButton}
             onClick={handleCancelSubscription}
+            disabled={isLoading}
           >
-            구독 취소
+            {isLoading ? '취소 중...' : '구독 취소'}
           </button>
         </div>
       </div>
