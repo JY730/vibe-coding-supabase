@@ -16,7 +16,7 @@ export default function Mypage() {
   const handleCancelSubscription = async () => {
     // TODO: 실제 transactionKey는 사용자의 구독 정보에서 가져와야 합니다.
     // 현재는 예시로 하드코딩된 값을 사용합니다.
-    const transactionKey = '';
+    const transactionKey = 'payment_1762840150442_arzofnw';
     
     if (confirm('정말로 구독을 취소하시겠습니까?')) {
       await cancelSubscription({ transactionKey });
