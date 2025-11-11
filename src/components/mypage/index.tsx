@@ -47,7 +47,7 @@ export default function Mypage() {
       return;
     }
 
-    router.push('/magazines');
+    router.push('/payments');
   };
 
   return (
