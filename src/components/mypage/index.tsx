@@ -3,24 +3,51 @@
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { usePaymentCancel } from './hooks/index.payment.cancel.hook';
+import { usePaymentStatus } from './hooks/index.payment.status.hook';
 import styles from './styles.module.css';
 
 export default function Mypage() {
   const router = useRouter();
-  const { isLoading, cancelSubscription } = usePaymentCancel();
+  const {
+    statusMessage,
+    canCancel,
+    canSubscribe,
+    transactionKey,
+    isLoading: isStatusLoading,
+    error,
+    refetch,
+  } = usePaymentStatus();
+  const {
+    isLoading: isCancelLoading,
+    cancelSubscription,
+  } = usePaymentCancel();
+
+  const isProcessing = isStatusLoading || isCancelLoading;
 
   const handleListClick = () => {
     router.push('/magazines');
   };
 
   const handleCancelSubscription = async () => {
-    // TODO: 실제 transactionKey는 사용자의 구독 정보에서 가져와야 합니다.
-    // 현재는 예시로 하드코딩된 값을 사용합니다.
-    const transactionKey = 'payment_1762840150442_arzofnw';
-    
-    if (confirm('정말로 구독을 취소하시겠습니까?')) {
-      await cancelSubscription({ transactionKey });
+    if (!transactionKey) {
+      alert('구독 정보가 없습니다.');
+      return;
     }
+
+    if (confirm('정말로 구독을 취소하시겠습니까?')) {
+      const result = await cancelSubscription({ transactionKey });
+      if (result) {
+        await refetch();
+      }
+    }
+  };
+
+  const handleSubscribe = () => {
+    if (isProcessing) {
+      return;
+    }
+
+    router.push('/magazines');
   };
 
   return (
@@ -65,7 +92,9 @@ export default function Mypage() {
       <div className={styles.subscriptionContainer}>
         <div className={styles.subscriptionHeader}>
           <h3 className={styles.subscriptionTitle}>구독 플랜</h3>
-          <div className={styles.subscriptionBadge}>구독중</div>
+          <div className={styles.subscriptionBadge}>
+            {isStatusLoading ? '확인 중...' : statusMessage}
+          </div>
         </div>
 
         <div className={styles.subscriptionContent}>
@@ -113,13 +142,29 @@ export default function Mypage() {
             </div>
           </div>
 
-          <button
-            className={styles.cancelButton}
-            onClick={handleCancelSubscription}
-            disabled={isLoading}
-          >
-            {isLoading ? '취소 중...' : '구독 취소'}
-          </button>
+          {error && (
+            <div className={styles.errorMessage}>{error}</div>
+          )}
+
+          {canCancel && (
+            <button
+              className={styles.cancelButton}
+              onClick={handleCancelSubscription}
+              disabled={isProcessing}
+            >
+              {isProcessing ? '진행 중...' : '구독 취소'}
+            </button>
+          )}
+
+          {canSubscribe && (
+            <button
+              className={styles.subscribeButton}
+              onClick={handleSubscribe}
+              disabled={isProcessing}
+            >
+              {isProcessing ? '진행 중...' : '구독하기'}
+            </button>
+          )}
         </div>
       </div>
     </div>

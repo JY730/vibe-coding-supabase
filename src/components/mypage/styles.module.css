@@ -206,3 +206,26 @@
   border-color: #d1d5db;
 }
 
+.subscribeButton {
+  align-self: flex-start;
+  padding: 11px 21px;
+  background-color: #10b981;
+  border: 1px solid #059669;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 21px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.subscribeButton:hover {
+  background-color: #059669;
+  border-color: #047857;
+}
+
+.errorMessage {
+  font-size: 13px;
+  line-height: 20px;
+  color: #dc2626;
+}
