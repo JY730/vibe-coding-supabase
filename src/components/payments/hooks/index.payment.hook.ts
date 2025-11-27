@@ -9,7 +9,9 @@ import { supabase } from "@/lib/supabase";
 declare global {
   interface Window {
     PortOne?: {
-      requestIssueBillingKey: (params: IssueBillingKeyParams) => Promise<IssueBillingKeyResponse>;
+      requestIssueBillingKey: (
+        params: IssueBillingKeyParams
+      ) => Promise<IssueBillingKeyResponse>;
     };
   }
 }
@@ -81,8 +83,11 @@ export const usePayment = () => {
       }
 
       // 2. 로그인 상태 확인 및 사용자 정보 가져오기
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
       if (sessionError || !session?.user) {
         alert("로그인이 필요합니다. 로그인 페이지로 이동합니다.");
         router.push("/auth/login");
@@ -111,7 +116,10 @@ export const usePayment = () => {
         billingKeyMethod: "CARD",
         customer: {
           id: userId,
-          name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || "고객명",
+          name:
+            session.user.user_metadata?.full_name ||
+            session.user.user_metadata?.name ||
+            "고객명",
           email: session.user.email || "customer@example.com",
         },
       });
@@ -147,7 +155,7 @@ export const usePayment = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${accessToken}`, // 인증토큰
+          Authorization: `Bearer ${accessToken}`, // 인증토큰
         },
         body: JSON.stringify(paymentRequestData),
       });
@@ -165,10 +173,13 @@ export const usePayment = () => {
       console.log("결제 성공:", paymentData);
       alert("구독에 성공하였습니다.");
       router.push("/magazines");
-
     } catch (error) {
       console.error("Payment Error:", error);
-      alert(error instanceof Error ? error.message : "결제 처리 중 오류가 발생했습니다.");
+      alert(
+        error instanceof Error
+          ? error.message
+          : "결제 처리 중 오류가 발생했습니다."
+      );
     }
   };
 
@@ -176,4 +187,3 @@ export const usePayment = () => {
     handleSubscribe,
   };
 };
-

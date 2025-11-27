@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
-import type { User } from '@supabase/supabase-js';
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/lib/supabase";
+import type { User } from "@supabase/supabase-js";
 
 export interface UserProfile {
   id: string;
@@ -34,7 +34,10 @@ export const useProfile = (): UseProfileResult => {
       setError(null);
 
       // 현재 세션에서 사용자 정보 가져오기
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
       if (sessionError) {
         throw sessionError;
@@ -51,23 +54,24 @@ export const useProfile = (): UseProfileResult => {
       // 사용자 프로필 정보 구성
       const userProfile: UserProfile = {
         id: user.id,
-        name: user.user_metadata?.full_name || 
-              user.user_metadata?.name || 
-              user.email?.split('@')[0] || 
-              '사용자',
-        email: user.email || '',
-        avatarUrl: user.user_metadata?.avatar_url || 
-                   user.user_metadata?.picture || 
-                   null,
+        name:
+          user.user_metadata?.full_name ||
+          user.user_metadata?.name ||
+          user.email?.split("@")[0] ||
+          "사용자",
+        email: user.email || "",
+        avatarUrl:
+          user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
         joinDate: user.created_at || new Date().toISOString(),
       };
 
       setProfile(userProfile);
     } catch (err) {
-      console.error('프로필 조회 오류:', err);
-      const message = err instanceof Error 
-        ? err.message 
-        : '프로필 정보를 불러오는데 실패했습니다.';
+      console.error("프로필 조회 오류:", err);
+      const message =
+        err instanceof Error
+          ? err.message
+          : "프로필 정보를 불러오는데 실패했습니다.";
       setError(message);
       setProfile(null);
     } finally {
@@ -79,16 +83,16 @@ export const useProfile = (): UseProfileResult => {
     fetchProfile();
 
     // 인증 상태 변경 감지
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event) => {
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          await fetchProfile();
-        } else if (event === 'SIGNED_OUT') {
-          setProfile(null);
-          setIsLoading(false);
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event) => {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        await fetchProfile();
+      } else if (event === "SIGNED_OUT") {
+        setProfile(null);
+        setIsLoading(false);
       }
-    );
+    });
 
     return () => {
       subscription.unsubscribe();
@@ -102,6 +106,3 @@ export const useProfile = (): UseProfileResult => {
     refetch: fetchProfile,
   };
 };
-
-
-
