@@ -9,8 +9,14 @@ import { supabase } from "@/lib/supabase";
 export const useGoogleLogin = () => {
   const handleGoogleLogin = async () => {
     try {
-      // 현재 페이지의 origin을 가져와서 redirectTo URL 생성
-      const redirectTo = `${window.location.origin}/auth/login/success`;
+      // 환경 변수에서 명시적으로 설정된 URL이 있으면 사용, 없으면 현재 origin 사용
+      const baseUrl =
+        process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+      const redirectTo = `${baseUrl}/auth/login/success`;
+
+      // 디버깅을 위한 로그 (프로덕션에서는 제거 가능)
+      console.log("OAuth 리다이렉트 URL:", redirectTo);
+      console.log("현재 origin:", window.location.origin);
 
       // Supabase 구글 OAuth 로그인 시작
       const { error } = await supabase.auth.signInWithOAuth({
