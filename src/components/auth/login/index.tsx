@@ -1,10 +1,20 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Image from 'next/image';
-import styles from './styles.module.css';
+import React from "react";
+import Image from "next/image";
+import styles from "./styles.module.css";
+import { useGoogleLogin } from "./hooks/index.login.google.hook";
 
-const LoginComponent = () => {
+interface LoginComponentProps {
+  handleGoogleLogin?: () => Promise<void>;
+}
+
+const LoginComponent = ({
+  handleGoogleLogin: propHandleGoogleLogin,
+}: LoginComponentProps = {}) => {
+  const { handleGoogleLogin: hookHandleGoogleLogin } = useGoogleLogin();
+  const handleGoogleLogin = propHandleGoogleLogin ?? hookHandleGoogleLogin;
+
   return (
     <div className={styles.container}>
       <div className={styles.loginCard}>
@@ -24,12 +34,16 @@ const LoginComponent = () => {
         {/* 텍스트 영역 */}
         <div className={styles.textSection}>
           <h1 className={styles.title}>IT 매거진</h1>
-          <p className={styles.subtitle}>최신 기술 트렌드와 인사이트를 한곳에서</p>
-          <p className={styles.description}>로그인하고 개인 맞춤형 콘텐츠를 추천받으세요</p>
+          <p className={styles.subtitle}>
+            최신 기술 트렌드와 인사이트를 한곳에서
+          </p>
+          <p className={styles.description}>
+            로그인하고 개인 맞춤형 콘텐츠를 추천받으세요
+          </p>
         </div>
 
         {/* 구글 로그인 버튼 */}
-        <button className={styles.googleButton}>
+        <button className={styles.googleButton} onClick={handleGoogleLogin}>
           <Image
             src="/images/google.svg"
             alt="Google"
@@ -49,18 +63,23 @@ const LoginComponent = () => {
         {/* 로그인 없이 둘러보기 버튼 */}
         <div className={styles.guestButtonContainer}>
           <button className={styles.guestButton}>
-            <span className={styles.guestButtonText}>로그인 없이 무료 콘텐츠 둘러보기</span>
+            <span className={styles.guestButtonText}>
+              로그인 없이 무료 콘텐츠 둘러보기
+            </span>
           </button>
 
           {/* 약관 동의 텍스트 */}
           <div className={styles.termsText}>
             <span>로그인하면 </span>
-            <a href="#" className={styles.termsLink}>이용약관</a>
+            <a href="#" className={styles.termsLink}>
+              이용약관
+            </a>
             <span> 및 </span>
-            <a href="#" className={styles.termsLink}>개인정보처리방침</a>
+            <a href="#" className={styles.termsLink}>
+              개인정보처리방침
+            </a>
             <span>에 동의하게 됩니다</span>
           </div>
-
         </div>
 
         {/* 하단 기능 목록 */}

@@ -33,7 +33,8 @@
 /* 버튼 스타일 */
 .loginButton,
 .writeButton,
-.subscribeButton {
+.subscribeButton,
+.logoutButton {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -87,6 +88,66 @@
 
 .subscribeButton:hover {
   background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+}
+
+.logoutButton {
+  width: 120px;
+  background-color: transparent;
+  color: #6b7280;
+  border: 1px solid transparent;
+}
+
+.logoutButton:hover {
+  background-color: #f9fafb;
+}
+
+/* 프로필 영역 */
+.profileAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f3f4f6;
+  transition: all 0.2s ease;
+}
+
+.profileAvatar:hover {
+  opacity: 0.8;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.userName {
+  padding: 10px 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #171717;
+  line-height: 28px;
+  transition: all 0.2s ease;
+}
+
+.userName:hover {
+  color: #8b5cf6;
 }
 
 /* Gap - 1400 * 8 */
@@ -254,17 +315,32 @@
   .articlesGrid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .headerNav {
     gap: 4px;
   }
-  
+
   .loginButton,
   .writeButton,
-  .subscribeButton {
+  .subscribeButton,
+  .logoutButton {
     width: 100px;
     padding: 8px 12px;
     font-size: 14px;
+  }
+
+  .userName {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .profileAvatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .avatarPlaceholder {
+    font-size: 16px;
   }
 }
 
@@ -272,26 +348,41 @@
   .articlesGrid {
     grid-template-columns: 1fr;
   }
-  
+
   .headerContent {
     padding: 0 1rem;
   }
-  
+
   .main {
     padding: 0 12px;
   }
-  
+
   .headerNav {
     flex-direction: column;
     gap: 4px;
   }
-  
+
   .loginButton,
   .writeButton,
-  .subscribeButton {
+  .subscribeButton,
+  .logoutButton {
     width: 80px;
     padding: 6px 8px;
     font-size: 12px;
     height: 36px;
+  }
+
+  .userName {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .profileAvatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .avatarPlaceholder {
+    font-size: 14px;
   }
 }

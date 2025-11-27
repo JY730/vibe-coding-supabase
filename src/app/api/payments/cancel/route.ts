@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 /**
  * PortOne V2 결제 취소 API
@@ -27,6 +28,18 @@ interface PortOneCancelBody {
   reason: string;
 }
 
+// Supabase 클라이언트 생성 헬퍼 함수
+const getSupabaseClient = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase 환경 변수가 설정되지 않았습니다.');
+  }
+
+  return createClient(supabaseUrl, supabaseAnonKey);
+};
+
 export async function POST(request: NextRequest) {
   try {
     // 1. 요청 데이터 파싱
@@ -43,7 +56,55 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. PortOne API Secret 키 확인
+    // 3. 인가: API 요청자 검증 (가장 간단한 인가 방식)
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: '인증 토큰이 필요합니다.',
+        } as CancelResponse,
+        { status: 401 }
+      );
+    }
+
+    const authToken = authHeader.replace('Bearer ', '');
+    const supabase = getSupabaseClient();
+
+    // 사용자 인증 확인
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authToken);
+
+    if (authError || !user) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: '인증에 실패했습니다.',
+        } as CancelResponse,
+        { status: 401 }
+      );
+    }
+
+    const userId = user.id;
+
+    // 4. 취소가능여부 검증: payment 테이블 조회
+    const { data: paymentData, error: paymentError } = await supabase
+      .from('payment')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('transaction_key', body.transactionKey)
+      .single();
+
+    if (paymentError || !paymentData) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: '취소 가능한 결제 내역을 찾을 수 없습니다.',
+        } as CancelResponse,
+        { status: 404 }
+      );
+    }
+
+    // 5. PortOne API Secret 키 확인
     const portOneSecret = process.env.PORTONE_API_SECRET;
     if (!portOneSecret) {
       return NextResponse.json(
@@ -55,12 +116,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. PortOne API 취소 요청 바디 구성
+    // 6. PortOne API 취소 요청 바디 구성
     const portOneCancelBody: PortOneCancelBody = {
       reason: '취소 사유 없음',
     };
 
-    // 5. PortOne V2 결제 취소 API 호출
+    // 7. PortOne V2 결제 취소 API 호출
     const portOneApiUrl = `https://api.portone.io/payments/${encodeURIComponent(body.transactionKey)}/cancel`;
     
     const portOneResponse = await fetch(portOneApiUrl, {
@@ -72,7 +133,7 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(portOneCancelBody),
     });
 
-    // 6. PortOne 응답 처리
+    // 8. PortOne 응답 처리
     const portOneData = await portOneResponse.json();
 
     if (!portOneResponse.ok) {
@@ -86,12 +147,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 7. 성공 응답 반환 (DB 저장 없이)
+    // 9. 성공 응답 반환 (DB 저장 없이)
     return NextResponse.json(
       {
         success: true,
-        message: '결제가 성공적으로 취소되었습니다.',
-        data: portOneData,
       } as CancelResponse,
       { status: 200 }
     );
@@ -108,4 +167,7 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+
+
 

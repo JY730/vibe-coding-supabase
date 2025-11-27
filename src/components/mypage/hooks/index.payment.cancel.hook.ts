@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 /**
  * 구독 취소 훅
@@ -46,11 +47,19 @@ export const usePaymentCancel = () => {
         throw new Error('transactionKey가 필요합니다.');
       }
 
-      // 3. 구독 취소 API 호출
+      // 3. 인증 토큰 가져오기
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session?.access_token) {
+        throw new Error('인증 토큰을 가져올 수 없습니다.');
+      }
+
+      // 4. 구독 취소 API 호출
       const response = await fetch('/api/payments/cancel', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           transactionKey,

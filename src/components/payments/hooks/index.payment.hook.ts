@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 /**
  * 포트원 V2 SDK 타입 정의
@@ -47,6 +48,7 @@ interface PaymentRequestData {
   customer: {
     id: string;
   };
+  customData?: string;
 }
 
 /**
@@ -78,7 +80,19 @@ export const usePayment = () => {
         return;
       }
 
-      // 2. 환경 변수 확인
+      // 2. 로그인 상태 확인 및 사용자 정보 가져오기
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session?.user) {
+        alert("로그인이 필요합니다. 로그인 페이지로 이동합니다.");
+        router.push("/auth/login");
+        return;
+      }
+
+      const userId = session.user.id;
+      const accessToken = session.access_token;
+
+      // 3. 환경 변수 확인
       const storeId = process.env.NEXT_PUBLIC_PORTONE_STORE_ID;
       const channelKey = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY;
 
@@ -90,26 +104,26 @@ export const usePayment = () => {
 
       console.log("포트원 빌링키 발급 요청:", { storeId, channelKey });
 
-      // 3. 빌링키 발급 요청
+      // 4. 빌링키 발급 요청
       const issueResponse = await window.PortOne.requestIssueBillingKey({
         storeId,
         channelKey,
         billingKeyMethod: "CARD",
         customer: {
-          id: `customer_${Date.now()}`,
-          name: "고객명",
-          email: "customer@example.com",
+          id: userId,
+          name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || "고객명",
+          email: session.user.email || "customer@example.com",
         },
       });
 
-      // 4. 빌링키 발급 실패 처리
+      // 5. 빌링키 발급 실패 처리
       if (issueResponse.code !== undefined) {
         console.error("빌링키 발급 실패:", issueResponse);
         alert(issueResponse.message || "빌링키 발급에 실패했습니다.");
         return;
       }
 
-      // 5. 빌링키 발급 성공 확인
+      // 6. 빌링키 발급 성공 확인
       if (!issueResponse.billingKey) {
         console.error("빌링키 없음:", issueResponse);
         alert("빌링키가 발급되지 않았습니다.");
@@ -118,34 +132,36 @@ export const usePayment = () => {
 
       console.log("빌링키 발급 성공:", issueResponse.billingKey);
 
-      // 6. 결제 API 요청
+      // 7. 결제 API 요청
       const paymentRequestData: PaymentRequestData = {
         billingKey: issueResponse.billingKey,
         orderName: "IT 매거진 월간 구독",
         amount: 9900,
         customer: {
-          id: `customer_${Date.now()}`,
+          id: userId,
         },
+        customData: userId, // 로그인된 user_id
       };
 
       const paymentResponse = await fetch("/api/payments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`, // 인증토큰
         },
         body: JSON.stringify(paymentRequestData),
       });
 
       const paymentData: PaymentResponseData = await paymentResponse.json();
 
-      // 7. 결제 실패 처리
+      // 8. 결제 실패 처리
       if (!paymentData.success) {
         console.error("결제 실패:", paymentData);
         alert(paymentData.message || "결제에 실패했습니다.");
         return;
       }
 
-      // 8. 결제 성공 처리
+      // 9. 결제 성공 처리
       console.log("결제 성공:", paymentData);
       alert("구독에 성공하였습니다.");
       router.push("/magazines");

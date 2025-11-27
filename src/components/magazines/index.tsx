@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import styles from './styles.module.css';
 import Image from 'next/image';
 import { useMagazines } from './hooks/index.binding.hook';
+import { useLoginLogoutStatus } from './hooks/index.login.logout.status.hook';
 import { supabase } from '@/lib/supabase';
 
 export default function Magazines() {
   const router = useRouter();
   const { magazines, loading, error } = useMagazines();
+  const { isLoggedIn, user, loading: authLoading, handleLogout } = useLoginLogoutStatus();
 
   const resolveImageSrc = (raw: string | null | undefined): string => {
     const value = (raw || '').trim();
@@ -88,11 +90,55 @@ export default function Magazines() {
       <header className={styles.header}>
         <div className={styles.headerContent}>
           <div className={styles.headerNav}>
-            {/* 로그인 버튼 */}
-            <button className={styles.loginButton} onClick={() => router.push('/auth/login')}>
-              <Image src="/icons/login.svg" alt="로그인" width={18} height={18} />
-              <span className={styles.buttonText}>로그인</span>
-            </button>
+            {!authLoading && (
+              <>
+                {isLoggedIn && user ? (
+                  <>
+                    {/* 프로필 사진 */}
+                    <div 
+                      className={styles.profileAvatar}
+                      onClick={() => router.push('/mypage')}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {user.user_metadata?.avatar_url || user.user_metadata?.picture ? (
+                        <Image
+                          src={user.user_metadata.avatar_url || user.user_metadata.picture}
+                          alt="프로필"
+                          width={40}
+                          height={40}
+                          className={styles.avatarImage}
+                        />
+                      ) : (
+                        <div className={styles.avatarPlaceholder}>
+                          {user.user_metadata?.full_name?.[0] || user.user_metadata?.name?.[0] || user.email?.[0]?.toUpperCase() || 'U'}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* 이름 */}
+                    <div 
+                      className={styles.userName}
+                      onClick={() => router.push('/mypage')}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {user.user_metadata?.full_name || user.user_metadata?.name || user.email || '사용자'}
+                    </div>
+                    
+                    {/* 로그아웃 버튼 */}
+                    <button className={styles.logoutButton} onClick={handleLogout}>
+                      <Image src="/icons/login.svg" alt="로그아웃" width={18} height={18} />
+                      <span className={styles.buttonText}>로그아웃</span>
+                    </button>
+                  </>
+                ) : (
+                  /* 로그인 버튼 */
+                  <button className={styles.loginButton} onClick={() => router.push('/auth/login')}>
+                    <Image src="/icons/login.svg" alt="로그인" width={18} height={18} />
+                    <span className={styles.buttonText}>로그인</span>
+                  </button>
+                )}
+              </>
+            )}
             
             {/* 글쓰기 버튼 */}
             <button className={styles.writeButton} onClick={() => router.push('/magazines/new')}>

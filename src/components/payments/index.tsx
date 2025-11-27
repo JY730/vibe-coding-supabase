@@ -4,7 +4,7 @@ import React from 'react';
 import styles from './styles.module.css';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { usePayment } from '@/app/payments/hooks/index.payment.hook';
+import { usePayment } from './hooks/index.payment.hook';
 
 export default function Payments() {
   const router = useRouter();

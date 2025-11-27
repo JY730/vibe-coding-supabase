@@ -27,6 +27,7 @@ type PortOnePaymentData = {
   customer?: PortOnePaymentCustomer;
   method?: PortOnePaymentMethod;
   billingKeyPayment?: PortOneBillingKeyPayment;
+  customData?: string;
   payment?: {
     billingKey?: string;
     customerId?: string;
@@ -43,6 +44,7 @@ type PaymentRow = {
   end_grace_at: string;
   next_schedule_at: string;
   next_schedule_id: string;
+  user_id?: string;
 };
 
 type ScheduleItem = {
@@ -155,6 +157,7 @@ async function handlePaidStatus(paymentData: PortOnePaymentData, payment_id: str
     end_grace_at: endGraceAt.toISOString(),
     next_schedule_at: nextScheduleAt.toISOString(),
     next_schedule_id: nextScheduleId,
+    user_id: paymentData.customData,
   };
 
   const {
@@ -206,6 +209,7 @@ async function handlePaidStatus(paymentData: PortOnePaymentData, payment_id: str
         amount: {
           total: paymentData.amount?.total || 0,
         },
+        customData: paymentData.customData,
         currency: 'KRW',
       },
       timeToPay: nextScheduleAt.toISOString(),
@@ -337,6 +341,7 @@ async function handleCancelledStatus(paymentData: PortOnePaymentData, payment_id
     end_grace_at: existingPayment.end_grace_at,
     next_schedule_at: existingPayment.next_schedule_at,
     next_schedule_id: existingPayment.next_schedule_id,
+    user_id: existingPayment.user_id,
   };
 
   const {

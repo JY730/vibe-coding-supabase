@@ -93,9 +93,27 @@ export const usePaymentStatus = (): UsePaymentStatusResult => {
       setIsLoading(true);
       setError(null);
 
+      // 현재 세션에서 사용자 정보 가져오기
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        throw sessionError;
+      }
+
+      if (!session?.user) {
+        // 로그인되지 않은 경우 빈 결과 반환
+        setPayments([]);
+        setStatus(defaultStatus);
+        return;
+      }
+
+      const userId = session.user.id;
+
+      // 로그인된 사용자의 결제 정보만 필터링하여 조회
       const { data, error: supabaseError } = await supabase
         .from('payment')
         .select('*')
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (supabaseError) {

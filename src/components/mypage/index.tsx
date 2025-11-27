@@ -4,7 +4,42 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { usePaymentCancel } from './hooks/index.payment.cancel.hook';
 import { usePaymentStatus } from './hooks/index.payment.status.hook';
+import { useProfile } from './hooks/index.profile.hook';
 import styles from './styles.module.css';
+
+/**
+ * 날짜를 YYYY.MM 형식으로 포맷하는 헬퍼 함수
+ */
+const formatJoinDate = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    return `${year}.${month}`;
+  } catch {
+    return '';
+  }
+};
+
+/**
+ * 이름에서 이니셜을 추출하는 헬퍼 함수
+ */
+const getInitials = (name: string): string => {
+  if (!name) return 'U';
+  
+  // 한글 이름인 경우 첫 글자만 사용
+  const isKorean = /[가-힣]/.test(name);
+  if (isKorean) {
+    return name.charAt(0);
+  }
+  
+  // 영문 이름인 경우 첫 글자들 사용 (예: "John Doe" -> "JD")
+  const words = name.trim().split(/\s+/);
+  if (words.length >= 2) {
+    return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
+  }
+  return name.charAt(0).toUpperCase();
+};
 
 export default function Mypage() {
   const router = useRouter();
@@ -21,6 +56,11 @@ export default function Mypage() {
     isLoading: isCancelLoading,
     cancelSubscription,
   } = usePaymentCancel();
+  const {
+    profile,
+    isLoading: isProfileLoading,
+    error: profileError,
+  } = useProfile();
 
   const isProcessing = isStatusLoading || isCancelLoading;
 
@@ -73,19 +113,35 @@ export default function Mypage() {
 
       {/* 프로필 영역 */}
       <div className={styles.profileContainer}>
-        <div className={styles.profileImage}>
-          <Image
-            src="/images/picture01.jpg"
-            alt="테크러버"
-            width={120}
-            height={120}
-          />
-        </div>
-        <h2 className={styles.profileName}>테크러버</h2>
-        <p className={styles.profileDescription}>
-          최신 IT 트렌드와 개발 이야기를 공유합니다
-        </p>
-        <div className={styles.joinDate}>가입일 2024.03</div>
+        {isProfileLoading ? (
+          <div>프로필을 불러오는 중...</div>
+        ) : profileError ? (
+          <div className={styles.errorMessage}>{profileError}</div>
+        ) : profile ? (
+          <>
+            <div className={styles.profileImage}>
+              {profile.avatarUrl ? (
+                <Image
+                  src={profile.avatarUrl}
+                  alt={profile.name}
+                  width={120}
+                  height={120}
+                />
+              ) : (
+                <div className={styles.profileAvatarFallback}>
+                  {getInitials(profile.name)}
+                </div>
+              )}
+            </div>
+            <h2 className={styles.profileName}>{profile.name}</h2>
+            <p className={styles.profileDescription}>{profile.email}</p>
+            <div className={styles.joinDate}>
+              가입일 {formatJoinDate(profile.joinDate)}
+            </div>
+          </>
+        ) : (
+          <div>로그인이 필요합니다.</div>
+        )}
       </div>
 
       {/* 구독 플랜 영역 */}
