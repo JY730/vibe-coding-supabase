@@ -6,12 +6,16 @@ import styles from './styles.module.css';
 import Image from 'next/image';
 import { useMagazines } from './hooks/index.binding.hook';
 import { useLoginLogoutStatus } from './hooks/index.login.logout.status.hook';
+import { useAuthGuard } from './hooks/index.guard.auth.hook';
+import { useSubscribeGuard } from './hooks/index.guard.subscribe.hook';
 import { supabase } from '@/lib/supabase';
 
 export default function Magazines() {
   const router = useRouter();
   const { magazines, loading, error } = useMagazines();
   const { isLoggedIn, user, loading: authLoading, handleLogout } = useLoginLogoutStatus();
+  const { withAuthGuard } = useAuthGuard();
+  const { withSubscribeGuard } = useSubscribeGuard();
 
   const resolveImageSrc = (raw: string | null | undefined): string => {
     const value = (raw || '').trim();
@@ -59,7 +63,9 @@ export default function Magazines() {
 
   // 매거진 카드 클릭 핸들러
   const handleMagazineClick = (id: string) => {
-    router.push(`/magazines/${id}`);
+    withSubscribeGuard(() => {
+      router.push(`/magazines/${id}`);
+    });
   };
 
   // 로딩 상태 처리
@@ -141,13 +147,27 @@ export default function Magazines() {
             )}
             
             {/* 글쓰기 버튼 */}
-            <button className={styles.writeButton} onClick={() => router.push('/magazines/new')}>
+            <button 
+              className={styles.writeButton} 
+              onClick={() => {
+                withSubscribeGuard(() => {
+                  router.push('/magazines/new');
+                });
+              }}
+            >
               <Image src="/icons/write.svg" alt="글쓰기" width={18} height={18} />
               <span className={styles.buttonText}>글쓰기</span>
             </button>
             
             {/* 구독하기 버튼 */}
-            <button className={styles.subscribeButton} onClick={() => router.push('/payments')}>
+            <button 
+              className={styles.subscribeButton} 
+              onClick={() => {
+                withAuthGuard(() => {
+                  router.push('/payments');
+                });
+              }}
+            >
               <Image src="/icons/subscribe.svg" alt="구독하기" width={18} height={18} />
               <span className={styles.buttonText}>구독하기</span>
             </button>
